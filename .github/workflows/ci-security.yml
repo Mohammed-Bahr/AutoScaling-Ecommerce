@@ -135,7 +135,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20]
+        node-version: [24]
 
     steps:
       - name: Checkout Code
@@ -189,11 +189,12 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          fetch-depth: 0 # Full history for accurate blame/coverage
+          fetch-depth: 0
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
+        uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }} # 👈 add this
