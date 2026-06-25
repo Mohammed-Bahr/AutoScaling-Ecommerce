@@ -1,25 +1,127 @@
+# name: CI - Pre-Merge Security Gates
+
+# on:
+#   pull_request:
+#     branches: [ main , dev ]
+#     paths:
+#       - "backend/**"
+#       - "frontend/**"
+
+# jobs:
+#   secret-scan:
+#     name: Secret Scan
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0
+
+#       - name: Run TruffleHog Secret Scanner
+#         uses: trufflesecurity/trufflehog@main
+#         with:
+#           path: ./
+#           base: ${{ github.event.pull_request.base.sha }}
+#           head: ${{ github.event.pull_request.head.sha }}
+
+#   lint-test-build:
+#     name: Lint, Test, Build
+#     needs: secret-scan
+#     runs-on: ubuntu-latest
+
+#     strategy:
+#       matrix:
+#         node-version: [20]
+
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
+
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: ${{ matrix.node-version }}
+#           cache: npm
+
+#       # Backend
+#       - name: Install Backend Dependencies
+#         working-directory: ./backend
+#         run: npm install
+
+#       - name: Lint Backend
+#         working-directory: ./backend
+#         run: npm run lint --if-present
+
+#       - name: Test Backend
+#         working-directory: ./backend
+#         run: npm test --if-present
+
+#       - name: Build Backend
+#         working-directory: ./backend
+#         run: npm run build --if-present
+
+#       # Frontend
+#       - name: Install Frontend Dependencies
+#         working-directory: ./frontend
+#         run: npm install
+
+#       - name: Lint Frontend
+#         working-directory: ./frontend
+#         run: npm run lint --if-present
+
+#       - name: Test Frontend
+#         working-directory: ./frontend
+#         run: npm test --if-present
+
+#       - name: Build Frontend
+#         working-directory: ./frontend
+#         run: npm run build --if-present
+
+#   sonarqube:
+#     name: SonarQube
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+#         with:
+#           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+#       - name: SonarQube Scan
+#         uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
+#         env:
+#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
 name: CI - Pre-Merge Security Gates
 
 on:
   pull_request:
-    branches: [ main , dev ]
+    branches: [main, dev]
     paths:
       - "backend/**"
       - "frontend/**"
+
+# Least-privilege token — only read source code
+permissions:
+  contents: read
+
+# Cancel in-progress runs for the same PR to save CI minutes
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   secret-scan:
     name: Secret Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
 
       - name: Run TruffleHog Secret Scanner
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@30d5bb91af1a771378349dbbb0c82129392acf70 # v3.95.6
         with:
           path: ./
           base: ${{ github.event.pull_request.base.sha }}
@@ -29,6 +131,7 @@ jobs:
     name: Lint, Test, Build
     needs: secret-scan
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     strategy:
       matrix:
@@ -36,10 +139,10 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
@@ -47,7 +150,7 @@ jobs:
       # Backend
       - name: Install Backend Dependencies
         working-directory: ./backend
-        run: npm install
+        run: npm ci
 
       - name: Lint Backend
         working-directory: ./backend
@@ -64,7 +167,7 @@ jobs:
       # Frontend
       - name: Install Frontend Dependencies
         working-directory: ./frontend
-        run: npm install
+        run: npm ci
 
       - name: Lint Frontend
         working-directory: ./frontend
@@ -79,12 +182,17 @@ jobs:
         run: npm run build --if-present
 
   sonarqube:
-    name: SonarQube
+    name: SonarQube Analysis
+    needs: lint-test-build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: Checkout Code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0 # Full history for accurate blame/coverage
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
         env:
