@@ -1,13 +1,13 @@
 // frontend/src/components/Modal.jsx
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 
-// ... your component code ...
+// // ... your component code ...
 
-Modal.propTypes = {
-  children: PropTypes.node.isRequired,
-  onClose: PropTypes.func.isRequired,
-  isOpen: PropTypes.bool.isRequired,
-};
+// Modal.propTypes = {
+//   children: PropTypes.node.isRequired,
+//   onClose: PropTypes.func.isRequired,
+//   isOpen: PropTypes.bool.isRequired,
+// };
 
 const Modal = ({ isOpen, onClose, children }) => {
   return (
