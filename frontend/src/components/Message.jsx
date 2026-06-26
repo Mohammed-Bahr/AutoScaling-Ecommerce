@@ -1,10 +1,10 @@
-// frontend/src/components/Message.jsx
-import PropTypes from 'prop-types';
+// // frontend/src/components/Message.jsx
+// import PropTypes from 'prop-types';
 
-Message.propTypes = {
-  children: PropTypes.node.isRequired,
-  variant: PropTypes.string.isRequired,
-};
+// Message.propTypes = {
+//   children: PropTypes.node.isRequired,
+//   variant: PropTypes.string.isRequired,
+// };
 
 const Message = ({ variant, children }) => {
   const getVariantClass = () => {
