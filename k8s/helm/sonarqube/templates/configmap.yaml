@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sonarqube.fullname" . }}-config
+  labels:
+    {{- include "sonarqube.labels" . | nindent 4 }}
+data:
+  sonar.properties: |
+    sonar.jdbc.username={{ .Values.postgresql.database.user }}
+    sonar.jdbc.password={{ .Values.postgresql.database.password }}
+    sonar.jdbc.url=jdbc:postgresql://{{ include "sonarqube.fullname" . }}-postgresql:5432/{{ .Values.postgresql.database.name }}
+    {{- range $key, $value := .Values.sonarProperties }}
+    {{ $key }}={{ $value }}
+    {{- end }}
