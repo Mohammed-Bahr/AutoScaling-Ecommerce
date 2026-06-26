@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-import { FaHeart, FaRegHeart, FaVaadin } from "react-icons/fa";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   addToFavorites,
   removeFromFavorites,
@@ -15,6 +16,8 @@ import {
 
 const HeartIcon = ({ product }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { userInfo } = useSelector((state) => state.auth);
   const favorites = useSelector((state) => state.favorites) || [];
   const isFavorite = favorites.some((p) => p._id === product._id);
 
@@ -24,13 +27,17 @@ const HeartIcon = ({ product }) => {
   }, []);
 
   const toggleFavorites = () => {
+    if (!userInfo) {
+      navigate("/login?redirect=/shop");
+      return;
+    }
+
+
     if (isFavorite) {
       dispatch(removeFromFavorites(product));
-      // remove the product from the localStorage as well
       removeFavoriteFromLocalStorage(product._id);
     } else {
       dispatch(addToFavorites(product));
-      // add the product to localStorage as well
       addFavoriteToLocalStorage(product);
     }
   };
