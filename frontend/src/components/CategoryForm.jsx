@@ -1,6 +1,5 @@
 
 import PropTypes from 'prop-types';
-
 const CategoryForm = ({
   value,
   setValue,
