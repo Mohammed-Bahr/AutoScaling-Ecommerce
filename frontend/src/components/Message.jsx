@@ -1,10 +1,5 @@
-// // frontend/src/components/Message.jsx
-// import PropTypes from 'prop-types';
 
-// Message.propTypes = {
-//   children: PropTypes.node.isRequired,
-//   variant: PropTypes.string.isRequired,
-// };
+import PropTypes from 'prop-types';
 
 const Message = ({ variant, children }) => {
   const getVariantClass = () => {
@@ -19,6 +14,11 @@ const Message = ({ variant, children }) => {
   };
 
   return <div className={`p-4 rounded ${getVariantClass()}`}>{children}</div>;
+};
+
+Message.propTypes = {
+  children: PropTypes.node.isRequired,
+  variant: PropTypes.string.isRequired,
 };
 
 export default Message;
