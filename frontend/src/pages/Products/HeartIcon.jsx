@@ -32,6 +32,7 @@ const HeartIcon = ({ product }) => {
       return;
     }
 
+
     if (isFavorite) {
       dispatch(removeFromFavorites(product));
       removeFavoriteFromLocalStorage(product._id);
