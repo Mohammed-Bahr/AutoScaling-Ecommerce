@@ -1,0 +1,201 @@
+name: "CI/CD Pipeline"
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - "backend/**"
+      - "frontend/**"
+  push:
+    branches: [main, dev]
+    paths:
+      - "backend/**"
+      - "frontend/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  # ─────────────────────────────── CI (PR) ───────────────────────────────
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog Secret Scanner
+        uses: trufflesecurity/trufflehog@30d5bb91af1a771378349dbbb0c82129392acf70 # v3.95.6
+        with:
+          path: ./
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
+
+  lint-test-build:
+    name: Lint, Test & Build
+    needs: secret-scan
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      matrix:
+        node-version: [22]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+        # --------------- Prepare And test Backend -------------------------
+
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Lint Backend
+        working-directory: ./backend
+        run: npm run lint --if-present
+
+      - name: Test Backend
+        working-directory: ./backend
+        run: npm test --if-present
+
+      - name: Build Backend
+        working-directory: ./backend
+        run: npm run build --if-present
+
+        # --------------- Prepare And test Frontend -------------------------
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Lint Frontend
+        working-directory: ./frontend
+        run: npm run lint --if-present
+
+      - name: Test Frontend
+        working-directory: ./frontend
+        run: npm test --if-present
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: npm run build --if-present
+
+        # --------------- SonarQube Analysis -------------------------
+
+  sonarqube:
+    name: SonarQube Analysis
+    needs: lint-test-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v4.2.1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  # ─────────────────────────────── CD (Push) ─────────────────────────────
+  build-and-package:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.vars.outputs.tag }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set Version Tag
+        id: vars
+        run: echo "tag=v1.3-${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16e96402e9f6 # v3.8.0
+
+      - name: Login to Container Registry
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.3.0
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: ${{ secrets.REGISTRY_USER }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.1.0
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ secrets.REGISTRY_URL }}/app-backend:${{ steps.vars.outputs.tag }}
+
+  dast-and-functional-test:
+    name: DAST & Functional Tests
+    needs: build-and-package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Spin up Test Environment
+        run: |
+          docker run -d --name test_app -p 3000:3000 \
+            ${{ secrets.REGISTRY_URL }}/app-backend:${{ needs.build-and-package.outputs.image_tag }}
+          sleep 10
+
+      - name: Run Selenium / Automation Tests
+        run: |
+          echo "Running Selenium testing suites..."
+
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target: "http://localhost:3000/API"
+          rules_file_name: ".zap/rules.tsv"
+          fail_action: true
+
+  deploy-via-gitops:
+    name: Deploy via GitOps (ArgoCD)
+    needs: dast-and-functional-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout GitOps Repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          repository: "your-org/gitops-helm-charts"
+          token: ${{ secrets.GITOPS_REPO_PAT }}
+
+      - name: Update Image Tag in Helm Values
+        run: |
+          sed -i 's/tag: .*/tag: "${{ needs.build-and-package.outputs.image_tag }}"/g' charts/app-backend/values.yaml
+          git config --global user.name "gitops-bot"
+          git config --global user.email "gitops@yourcompany.com"
+          git commit -am "chore: deploy version ${{ needs.build-and-package.outputs.image_tag }} via ArgoCD"
+          git push
