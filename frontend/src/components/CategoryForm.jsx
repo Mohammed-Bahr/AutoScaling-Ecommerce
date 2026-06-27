@@ -1,13 +1,4 @@
-// frontend/src/components/CategoryForm.jsx
 import PropTypes from 'prop-types';
-
-CategoryForm.propTypes = {
-  value: PropTypes.string.isRequired,
-  setValue: PropTypes.func.isRequired,
-  handleSubmit: PropTypes.func.isRequired,
-  buttonText: PropTypes.string.isRequired,
-  handleDelete: PropTypes.func,           // optional if not always passed
-};
 
 const CategoryForm = ({
   value,
@@ -44,6 +35,14 @@ const CategoryForm = ({
       </form>
     </div>
   );
+};
+
+CategoryForm.propTypes = {
+  value: PropTypes.string.isRequired,
+  setValue: PropTypes.func.isRequired,
+  handleSubmit: PropTypes.func.isRequired,
+  buttonText: PropTypes.string.isRequired,
+  handleDelete: PropTypes.func,
 };
 
 export default CategoryForm;
