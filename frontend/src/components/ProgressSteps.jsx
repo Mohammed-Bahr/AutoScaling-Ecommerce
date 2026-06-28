@@ -1,3 +1,5 @@
+import PropTypes from "prop-types";
+
 const ProgressSteps = ({ step1, step2, step3 }) => {
   return (
     <div className="flex justify-center items-center space-x-4">
@@ -34,6 +36,14 @@ const ProgressSteps = ({ step1, step2, step3 }) => {
       </>
     </div>
   );
+};
+
+
+
+ProgressSteps.propTypes = {
+  step1: PropTypes.bool,
+  step2: PropTypes.bool,
+  step3: PropTypes.bool,
 };
 
 export default ProgressSteps;

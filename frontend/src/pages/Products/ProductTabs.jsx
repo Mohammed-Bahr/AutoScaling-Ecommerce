@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import PropTypes from "prop-types";
 import Ratings from "./Ratings";
 import { useGetTopProductsQuery } from "../../redux/api/productApiSlice";
 import SmallProduct from "./SmallProduct";
@@ -158,6 +159,28 @@ const ProductTabs = ({
       </section>
     </div>
   );
+};
+
+ProductTabs.propTypes = {
+  loadingProductReview: PropTypes.bool,
+  userInfo: PropTypes.object,
+  submitHandler: PropTypes.func.isRequired,
+  rating: PropTypes.number,
+  setRating: PropTypes.func.isRequired,
+  comment: PropTypes.string,
+  setComment: PropTypes.func.isRequired,
+  product: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    reviews: PropTypes.arrayOf(
+      PropTypes.shape({
+        _id: PropTypes.string,
+        name: PropTypes.string,
+        rating: PropTypes.number,
+        comment: PropTypes.string,
+        createdAt: PropTypes.string,
+      })
+    ),
+  }).isRequired,
 };
 
 export default ProductTabs;

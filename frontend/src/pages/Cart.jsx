@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { FaTrash } from "react-icons/fa";
+import { toast } from "react-toastify";
 import { addToCart, removeFromCart } from "../redux/features/cart/cartSlice";
 
 const Cart = () => {
@@ -10,7 +11,17 @@ const Cart = () => {
   const cart = useSelector((state) => state.cart);
   const { cartItems } = cart;
 
+  const { userInfo } = useSelector((state) => state.auth);
+
   const addToCartHandler = (product, qty) => {
+    if (!userInfo) {
+      toast.warning("Please log in to add items to your cart", {
+        position: toast.POSITION.TOP_RIGHT,
+        autoClose: 2000,
+      });
+      navigate("/login?redirect=/shop");
+      return;
+    }
     dispatch(addToCart({ ...product, qty }));
   };
 

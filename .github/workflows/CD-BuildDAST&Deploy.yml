@@ -1,88 +1,88 @@
-name: "CD - Build, DAST & Deploy"
+# name: "CD - Build, DAST & Deploy"
 
-on:
-  push:
-    branches: [main, dev]
-    paths:
-      - "backend/**" # Triggers the CD pipeline only when changes are merged into the backend
+# on:
+#   push:
+#     branches: [main, dev]
+#     paths:
+#       - "backend/**" # Triggers the CD pipeline only when changes are merged into the backend
 
-jobs:
-  build-and-package:
-    runs-on: ubuntu-latest
-    outputs:
-      image_tag: ${{ steps.vars.outputs.tag }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+# jobs:
+#   build-and-package:
+#     runs-on: ubuntu-latest
+#     outputs:
+#       image_tag: ${{ steps.vars.outputs.tag }}
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
 
-      - name: Set Version Tag (e.g., V1.3)
-        id: vars
-        run: echo "tag=v1.3-${{ github.run_number }}" >> $GITHUB_OUTPUT
+#       - name: Set Version Tag (e.g., V1.3)
+#         id: vars
+#         run: echo "tag=v1.3-${{ github.run_number }}" >> $GITHUB_OUTPUT
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+#       - name: Set up Docker Buildx
+#         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ secrets.REGISTRY_URL }}
-          username: ${{ secrets.REGISTRY_USER }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
+#       - name: Login to Container Registry
+#         uses: docker/login-action@v3
+#         with:
+#           registry: ${{ secrets.REGISTRY_URL }}
+#           username: ${{ secrets.REGISTRY_USER }}
+#           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Build and Push Backend Image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          file: ./backend/Dockerfile
-          push: true
-          tags: ${{ secrets.REGISTRY_URL }}/app-backend:${{ steps.vars.outputs.tag }}
+#       - name: Build and Push Backend Image
+#         uses: docker/build-push-action@v5
+#         with:
+#           context: ./backend
+#           file: ./backend/Dockerfile
+#           push: true
+#           tags: ${{ secrets.REGISTRY_URL }}/app-backend:${{ steps.vars.outputs.tag }}
 
-  # dast-and-functional-test:
-  #   needs: build-and-package
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout Code
-  #       uses: actions/checkout@v4
+#   # dast-and-functional-test:
+#   #   needs: build-and-package
+#   #   runs-on: ubuntu-latest
+#   #   steps:
+#   #     - name: Checkout Code
+#   #       uses: actions/checkout@v4
 
-  #     # Run app in temporary environment with port/volume mapping
-  #     - name: Spin up Test Environment
-  #       run: |
-  #         docker run -d --name test_app -p 3000:3000 \
-  #           -v ${{ github.workspace }}/logs:/app/logs \
-  #           ${{ secrets.REGISTRY_URL }}/app-backend:${{ needs.build-and-package.outputs.image_tag }}
-  #         sleep 10 # Wait for app boot
+#   #     # Run app in temporary environment with port/volume mapping
+#   #     - name: Spin up Test Environment
+#   #       run: |
+#   #         docker run -d --name test_app -p 3000:3000 \
+#   #           -v ${{ github.workspace }}/logs:/app/logs \
+#   #           ${{ secrets.REGISTRY_URL }}/app-backend:${{ needs.build-and-package.outputs.image_tag }}
+#   #         sleep 10 # Wait for app boot
 
-  #     # Functional Testing (Selenium)
-  #     - name: Run Selenium / Automation Tests
-  #       run: |
-  #         echo "Running Selenium testing suites..."
-  #         # docker run ... selenium test runner execution
+#   #     # Functional Testing (Selenium)
+#   #     - name: Run Selenium / Automation Tests
+#   #       run: |
+#   #         echo "Running Selenium testing suites..."
+#   #         # docker run ... selenium test runner execution
 
-  #     # DAST (OWASP ZAP)
-  #     - name: OWASP ZAP Baseline Scan
-  #       uses: zaproxy/action-baseline@v0.12.0
-  #       with:
-  #         token: ${{ secrets.GITHUB_TOKEN }}
-  #         target: 'http://localhost:3000/API'
-  #         rules_file_name: '.zap/rules.tsv'
-  #         fail_action: true
+#   #     # DAST (OWASP ZAP)
+#   #     - name: OWASP ZAP Baseline Scan
+#   #       uses: zaproxy/action-baseline@v0.12.0
+#   #       with:
+#   #         token: ${{ secrets.GITHUB_TOKEN }}
+#   #         target: 'http://localhost:3000/API'
+#   #         rules_file_name: '.zap/rules.tsv'
+#   #         fail_action: true
 
-  # deploy-via-gitops:
-  #   needs: [build-and-package, dast-and-functional-test]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout Config/Helm Repository
-  #       uses: actions/checkout@v4
-  #       with:
-  #         repository: 'your-org/gitops-helm-charts' # Change to your actual GitOps repo
-  #         token: ${{ secrets.GITOPS_REPO_PAT }}
+#   # deploy-via-gitops:
+#   #   needs: [build-and-package, dast-and-functional-test]
+#   #   runs-on: ubuntu-latest
+#   #   steps:
+#   #     - name: Checkout Config/Helm Repository
+#   #       uses: actions/checkout@v4
+#   #       with:
+#   #         repository: 'your-org/gitops-helm-charts' # Change to your actual GitOps repo
+#   #         token: ${{ secrets.GITOPS_REPO_PAT }}
 
-  #     # Update Helm Chart values for the backend
-  #     # ArgoCD will pick up this change automatically and sync it
-  #     - name: Update Image Tag in Helm Chart
-  #       run: |
-  #         sed -i 's/tag: .*/tag: "${{ needs.build-and-package.outputs.image_tag }}"/g' charts/app-backend/values.yaml
-  #         git config --global user.name "gitops-bot"
-  #         git config --global user.email "gitops@yourcompany.com"
-  #         git commit -am "chore: deploy version ${{ needs.build-and-package.outputs.image_tag }} via ArgoCD"
-  #         git push
+#   #     # Update Helm Chart values for the backend
+#   #     # ArgoCD will pick up this change automatically and sync it
+#   #     - name: Update Image Tag in Helm Chart
+#   #       run: |
+#   #         sed -i 's/tag: .*/tag: "${{ needs.build-and-package.outputs.image_tag }}"/g' charts/app-backend/values.yaml
+#   #         git config --global user.name "gitops-bot"
+#   #         git config --global user.email "gitops@yourcompany.com"
+#   #         git commit -am "chore: deploy version ${{ needs.build-and-package.outputs.image_tag }} via ArgoCD"
+#   #         git push

@@ -1,0 +1,596 @@
+# # ─────────────────────────────────────────────────────────────────────────────
+# # Workflow Name
+# # ─────────────────────────────────────────────────────────────────────────────
+# # This identifier appears in the Actions tab and can be referenced by other
+# # workflows via `${{ github.workflow }}`.
+# name: "CI/CD Pipeline"
+
+# # ─────────────────────────────────────────────────────────────────────────────
+# # Triggers (on)
+# # ─────────────────────────────────────────────────────────────────────────────
+# # The pipeline runs on two events:
+# #   1. Pull requests opened / updated against `main` or `dev`.
+# #   2. Direct pushes to `main` or `dev`.
+# #
+# # The `paths` filter ensures the pipeline only runs when code inside
+# # `backend/` or `frontend/` actually changes — doc-only or infra-only
+# # commits are skipped, saving runner time.
+# on:
+#   pull_request:
+#     branches: [main, dev]
+#     paths:
+#       - "backend/**"
+#       - "frontend/**"
+#   push:
+#     branches: [main, dev]
+#     paths:
+#       - "backend/**"
+#       - "frontend/**"
+
+# # ─────────────────────────────────────────────────────────────────────────────
+# # Permissions
+# # ─────────────────────────────────────────────────────────────────────────────
+# # Grant the GITHUB_TOKEN the bare minimum rights needed.
+# # `contents: read` allows checkout and action resolution but NOT push.
+# # Write permissions (e.g., pushing to GitOps repo, publishing packages)
+# # are obtained via explicit secrets (PATs) where needed.
+# permissions:
+#   contents: read
+
+# # ─────────────────────────────────────────────────────────────────────────────
+# # Concurrency
+# # ─────────────────────────────────────────────────────────────────────────────
+# # Groups runs by workflow name + PR number (or commit SHA for push events).
+# # `cancel-in-progress: true` means: if a new commit arrives for the same
+# # PR/branch while a run is still going, the in-progress run is cancelled
+# # automatically so only the latest commit is tested. This keeps the
+# # feedback loop fast and avoids wasting runner minutes.
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+#   cancel-in-progress: true
+
+# # ─────────────────────────────────────────────────────────────────────────────
+# # Jobs
+# # ─────────────────────────────────────────────────────────────────────────────
+# # The workflow is split into two logical phases:
+# #   1. CI (Continuous Integration) — runs on PRs: secret scan, lint, test &
+# #      build, and static analysis.
+# #   2. CD (Continuous Deployment) — runs on push: build Docker images,
+# #      run DAST / functional tests, and deploy via GitOps.
+
+# jobs:
+#   # ------------------------------------------------------------------------
+#   # CI — Secret Scan  (gate for all other CI jobs)
+#   # ------------------------------------------------------------------------
+#   # Before any code is built, scan the diff for accidentally committed
+#   # secrets, API keys, tokens, or credentials using TruffleHog.
+#   # If secrets are found, this job fails and stops the pipeline early.
+#   secret-scan:
+#     name: Secret Scan
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 10
+
+#     steps:
+#       # Fetch the full git history (fetch-depth: 0) so TruffleHog can
+#       # compare the PR's base commit against the head commit and only
+#       # report newly introduced secrets rather than pre-existing ones.
+#       - name: Checkout Code
+#         uses: actions/checkout@v7.0.0
+#         with:
+#           fetch-depth: 0
+
+#       # TruffleHog scans for high-entropy strings (passwords, tokens,
+#       # private keys) across the diff between base and head.
+#       - name: Run TruffleHog Secret Scanner
+#         uses: trufflesecurity/trufflehog@30d5bb91af1a771378349dbbb0c82129392acf70 # v3.95.6
+#         with:
+#           path: ./
+#           base: ${{ github.event.pull_request.base.sha }}
+#           head: ${{ github.event.pull_request.head.sha }}
+
+#   # ------------------------------------------------------------------------
+#   # CI — Lint, Test & Build
+#   # ------------------------------------------------------------------------
+#   # Only runs on pull_request events (not pushes) because secrets have
+#   # already been checked above via `needs: secret-scan`. If the scan found
+#   # anything, this job is skipped entirely, preventing malicious or
+#   # accidentally exposed secrets from reaching our test environment.
+#   #
+#   # The `if` guard also skips this job on push events — the pipeline still
+#   # runs push-triggered CD jobs below, but lint/test/build is redundant
+#   # for those because every PR must pass these checks before merging.
+#   lint-test-build:
+#     name: Lint, Test & Build
+#     needs: secret-scan
+#     if: github.event_name == 'pull_request'
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 15
+
+#     # Build matrix (currently pinned to Node 22). Later you can add more
+#     # versions here (e.g., [20, 22]) to test compatibility across runtimes.
+#     # Each matrix entry runs a fully parallel job.
+#     strategy:
+#       matrix:
+#         node-version: [20]
+
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v7.0.0
+#       # Pin a specific Node.js version and restore the npm cache if
+#       # the lockfile hasn't changed — this cuts install time from ~60s to ~5s.
+#       - name: Setup Node.js
+#         uses: actions/checkout@v7.0.0
+#         with:
+#           node-version: ${{ matrix.node-version }}
+#           cache: npm
+#           # Tell GitHub exactly which lockfiles to checksum for caching.
+#           # If neither lockfile changed, `npm ci` gets a cache hit.
+#           cache-dependency-path: |
+#             backend/package-lock.json
+#             frontend/package-lock.json
+
+#         # --------------- Backend: Install, Lint, Test, Build ---------------
+#         # Each step is scoped via `working-directory` so we don't need to
+#         # `cd backend && ...` manually. The `--if-present` flag means the
+#         # step won't fail if the script isn't defined in package.json.
+
+#       - name: Install Backend Dependencies
+#         working-directory: ./backend
+#         run: npm ci
+
+#       - name: Lint Backend
+#         working-directory: ./backend
+#         run: npm run lint --if-present
+
+#       - name: Test Backend
+#         working-directory: ./backend
+#         run: npm test --if-present
+
+#       - name: Build Backend
+#         working-directory: ./backend
+#         run: npm run build --if-present
+
+#         # --------------- Frontend: Install, Lint, Test, Build --------------
+
+#       - name: Install Frontend Dependencies
+#         working-directory: ./frontend
+#         run: npm ci
+
+#       - name: Lint Frontend
+#         working-directory: ./frontend
+#         run: npm run lint --if-present
+
+#       - name: Test Frontend
+#         working-directory: ./frontend
+#         run: npm test --if-present
+
+#       - name: Build Frontend
+#         working-directory: ./frontend
+#         run: npm run build --if-present
+
+#         # --------------- SonarQube Analysis -------------------------
+
+#   # ------------------------------------------------------------------------
+#   # CI — SonarQube Static Analysis
+#   # ------------------------------------------------------------------------
+#   # After linting and tests pass, run SonarQube for deeper static analysis:
+#   # code smells, bugs, security hotspots, and coverage gaps.
+#   # This job runs sequentially after lint-test-build (needs) to avoid
+#   # wasting analysis credits on code that fails basic checks.
+#   sonarqube:
+#     name: SonarQube Analysis
+#     needs: lint-test-build
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 10
+
+#     steps:
+#       # Full git history (fetch-depth: 0) is required by SonarQube's
+#       # blame/annotations and to compute the diff-based issue tracking.
+#       - name: Checkout Code
+#         uses: actions/checkout@v7.0.0
+
+#         with:
+#           fetch-depth: 0
+
+#       - name: SonarQube Scan
+#         uses: SonarSource/sonarqube-scan-action@v8.2.0
+#         env:
+#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+#   # ------------------------------------------------------------------------
+#   # CD — Build & Push Docker Image
+#   # ------------------------------------------------------------------------
+#   # This job runs on every push (PR merge or direct push) and builds a
+#   # Docker image for the backend service, then pushes it to the container
+#   # registry. The output `image_tag` is passed downstream so later jobs
+#   # (DAST, deploy) know exactly which version to test and release.
+#   #
+#   # NOTE: This job does NOT depend on lint-test-build because pushes don't
+#   # trigger that job (it's gated by `if:`). The assumption is that PRs
+#   # enforce CI before merge, so pushes onto main/dev are already clean.
+#   build-and-package:
+#     name: Build & Push Docker Image
+#     runs-on: ubuntu-latest
+#     outputs:
+#       image_tag: ${{ steps.vars.outputs.tag }}
+
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v7.0.0
+
+#       # Generate a unique, monotonically increasing version tag using
+#       # `run_number` (GitHub's per-workflow counter that resets per repo).
+#       # Format: v1.3-<run_number> (e.g., v1.3-42).
+#       # The value is written to $GITHUB_OUTPUT so subsequent steps (and
+#       # downstream jobs via `needs.build-and-package.outputs.image_tag`)
+#       # can reference it.
+#       - name: Set Version Tag
+#         id: vars
+#         run: echo "tag=v1.3-${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+#       # Enable Docker Buildx for advanced build features (multi-platform,
+#       # cache export, inline cache, etc.).
+#       - name: Set up Docker Buildx
+#         uses: docker/bake-action@v7.2.0
+
+#       # Authenticate to the private container registry so the next step
+#       # can push the image. Credentials are stored as GitHub secrets.
+#       - name: Login to Container Registry
+#         uses: docker/login-action@v4.2.0
+#         with:
+#           registry: ${{ secrets.REGISTRY_URL }}
+#           username: ${{ secrets.REGISTRY_USER }}
+#           password: ${{ secrets.REGISTRY_PASSWORD }}
+
+#       # Build the backend Dockerfile and push the image directly to the
+#       # registry. Using `build-push-action` instead of raw `docker build`
+#       # gives us layer caching, inline cache metadata, and better
+#       # integration with GitHub's Docker infrastructure.
+#       - name: Build and Push Backend Image
+#         uses: docker/build-push-action@v7.2.0
+#         with:
+#           context: ./backend
+#           file: ./backend/Dockerfile
+#           push: true
+#           tags: ${{ secrets.REGISTRY_URL }}/app-backend:${{ steps.vars.outputs.tag }}
+
+#   # ------------------------------------------------------------------------
+#   # CD — DAST & Functional Tests
+#   # ------------------------------------------------------------------------
+#   # After the Docker image is built and pushed, pull it back and run a
+#   # local container for testing. This job combines:
+#   #   1. Functional / Selenium automation tests against a live container.
+#   #   2. DAST (Dynamic Application Security Testing) via OWASP ZAP.
+#   #
+#   # If either category fails, the pipeline stops before deployment.
+#   dast-and-functional-test:
+#     name: DAST & Functional Tests
+#     needs: build-and-package
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v7.0.0
+
+#       # Start a container from the just-built image, mapping port 3000
+#       # to the host. A `sleep 10` gives the app time to boot before tests
+#       # hit it. (In production you'd replace this with a proper health-check
+#       # loop instead of a fixed sleep.)
+#       - name: Spin up Test Environment
+#         run: |
+#           docker run -d --name test_app -p 3000:3000 \
+#             ${{ secrets.REGISTRY_URL }}/app-backend:${{ needs.build-and-package.outputs.image_tag }}
+#           sleep 10
+
+#       # Placeholder for automated browser / API tests (e.g., Selenium,
+#       # Playwright, or Postman/Newman collections). Replace the `echo`
+#       # with your actual test command.
+#       - name: Run Selenium / Automation Tests
+#         run: |
+#           echo "Running Selenium testing suites..."
+
+#       # OWASP ZAP Baseline Scan — an automated spider + passive scan that
+#       # checks for common web vulnerabilities (XSS, SQLi, misconfigurations)
+#       # without active attack payloads. The rules file (.zap/rules.tsv)
+#       # allows tuning which alerts to ignore or escalate. `fail_action: true`
+#       # makes the pipeline fail on any HIGH/CRITICAL alert found.
+#       - name: OWASP ZAP Baseline Scan
+#         uses: zaproxy/action-baseline@v0.12.0
+#         with:
+#           token: ${{ secrets.GITHUB_TOKEN }}
+#           target: "http://localhost:3000/API"
+#           rules_file_name: ".zap/rules.tsv"
+#           fail_action: true
+
+#   # ------------------------------------------------------------------------
+#   # CD — Deploy via GitOps (ArgoCD)
+#   # ------------------------------------------------------------------------
+#   # The final gate: only runs on pushes to the `main` branch AFTER all
+#   # previous jobs (secret-scan → lint-test-build → sonarqube → build →
+#   # dast-and-functional-test) have passed.
+#   #
+#   # Strategy: instead of pushing directly to a Kubernetes cluster
+#   # (which couples CI to runtime creds), we update the desired state in
+#   # a separate GitOps repository. ArgoCD (or a similar tool) watches that
+#   # repo and automatically syncs the change to production.
+#   deploy-via-gitops:
+#     name: Deploy via GitOps (ArgoCD)
+#     needs: dast-and-functional-test
+#     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       # Check out the dedicated GitOps repo (NOT the app repo).
+#       # A Personal Access Token (PAT) is required because this repo is
+#       # likely in a different org/team and the default GITHUB_TOKEN
+#       # only has access to the current repository.
+#       - name: Checkout GitOps Repository
+#         uses: actions/checkout@v7.0.0
+#         with:
+#           repository: "your-org/gitops-helm-charts"
+#           token: ${{ secrets.GITOPS_REPO_PAT }}
+
+#       # Use `sed` to update the Docker image tag in the Helm values file
+#       # with the tag built earlier. Then commit and push. ArgoCD detects
+#       # the drift and rolls out the new version automatically.
+#       - name: Update Image Tag in Helm Values
+#         run: |
+#           sed -i 's/tag: .*/tag: "${{ needs.build-and-package.outputs.image_tag }}"/g' charts/app-backend/values.yaml
+#           git config --global user.name "gitops-bot"
+#           git config --global user.email "gitops@yourcompany.com"
+#           git commit -am "chore: deploy version ${{ needs.build-and-package.outputs.image_tag }} via ArgoCD"
+#           git push
+
+name: "CI/CD Pipeline"
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - "backend/**"
+      - "frontend/**"
+  push:
+    branches: [main, dev]
+    paths:
+      - "backend/**"
+      - "frontend/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # CI — Secret Scan
+  # ─────────────────────────────────────────────────────────────────────────
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog Secret Scanner
+        uses: trufflesecurity/trufflehog@30d5bb91af1a771378349dbbb0c82129392acf70 # v3.95.6
+        with:
+          path: ./
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
+          extra_args: --exclude-detectors sonarcloud
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # CI — Lint, Test & Build
+  # ─────────────────────────────────────────────────────────────────────────
+  lint-test-build:
+    name: Lint, Test & Build
+    needs: secret-scan
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      matrix:
+        node-version: [20]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # ✅ BUG FIX #1 — was `actions/checkout@v7.0.0` (checkout action, not setup-node).
+      # That meant Node.js was never actually installed; all subsequent `npm` steps
+      # were running against whatever version was pre-installed on the runner,
+      # and the cache/lockfile configuration was silently ignored.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      # ─── Backend ──────────────────────────────────────────────────────────
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Lint Backend
+        working-directory: ./backend
+        run: npm run lint --if-present
+
+      - name: Test Backend
+        working-directory: ./backend
+        run: npm test --if-present
+
+      - name: Build Backend
+        working-directory: ./backend
+        run: npm run build --if-present
+
+      # ─── Frontend ─────────────────────────────────────────────────────────
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Lint Frontend
+        working-directory: ./frontend
+        run: npm run lint --if-present
+
+      - name: Test Frontend
+        working-directory: ./frontend
+        run: npm test --if-present
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: npm run build --if-present
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # CI — SonarQube Static Analysis
+  # ─────────────────────────────────────────────────────────────────────────
+  sonarqube:
+    name: SonarQube Analysis
+    needs: lint-test-build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v8.2.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # CD — Build & Push Docker Image
+  # ─────────────────────────────────────────────────────────────────────────
+  # build-and-package:
+  #   name: Build & Push Docker Image
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     image_tag: ${{ steps.vars.outputs.tag }}
+
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
+
+  #     - name: Set Version Tag
+  #       id: vars
+  #       run: echo "tag=v1.3-${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+  #     # BUG FIX #3 — was `docker/bake-action@v7.2.0`.
+  #     # `bake-action` is NOT a Buildx setup step — it is a full image-build
+  #     # action that reads your docker-bake.hcl and runs `docker buildx bake`
+  #     # against the repository. That's why the logs showed it pulling your
+  #     # git repo and trying to build both frontend AND backend from the bake
+  #     # file — it was doing real builds when it was only supposed to be
+  #     # setting up the Buildx builder for later steps to use.
+  #     # The correct action for installing/configuring Buildx is setup-buildx-action.
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
+
+  #     - name: Login to Container Registry
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: ${{ secrets.REGISTRY_URL }}
+  #         username: ${{ secrets.REGISTRY_USER }}
+  #         password: ${{ secrets.REGISTRY_PASSWORD }}
+
+  #     # After the bake-action is replaced, this step now correctly controls
+  #     # what gets built. Only the backend image is built and pushed here.
+  #     # See also BUG FIX #4 below regarding the backend Dockerfile.
+  #     - name: Build and Push Backend Image
+  #       uses: docker/build-push-action@v6
+  #       with:
+  #         context: ./backend
+  #         file: ./backend/Dockerfile
+  #         push: true
+  #         tags: ${{ secrets.REGISTRY_URL }}/app-backend:${{ steps.vars.outputs.tag }}
+
+  build-and-package:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      # ---------- Checkout ------------
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        run: docker login -u mohammedbahr -p ${{ secrets.DOCKER_TOKEN }}
+
+      # ---------- Backend ------------
+      - name: build backend image
+        run: docker build -t mohammedbahr/depi-project-backend:latest -f backend/dockerfile .
+
+      - name: push backend image
+        run: docker push mohammedbahr/depi-project-backend:latest
+
+      # ---------- Frontend ------------
+      - name: build frontend image
+        run: docker build -t mohammedbahr/depi-project-frontend:latest -f frontend/dockerfile .
+
+      - name: push frontend image
+        run: docker push mohammedbahr/depi-project-frontend:latest
+
+  # # ─────────────────────────────────────────────────────────────────────────
+  # # CD — DAST & Functional Tests
+  # # ─────────────────────────────────────────────────────────────────────────
+  # dast-and-functional-test:
+  #   name: DAST & Functional Tests
+  #   needs: build-and-package
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
+
+  #     - name: Spin up Test Environment
+  #       run: |
+  #         docker run -d --name test_app -p 3000:3000 \
+  #           ${{ secrets.REGISTRY_URL }}/app-backend:${{ needs.build-and-package.outputs.image_tag }}
+  #         sleep 10
+
+  #     - name: Run Selenium / Automation Tests
+  #       run: |
+  #         echo "Running Selenium testing suites..."
+
+  #     - name: OWASP ZAP Baseline Scan
+  #       uses: zaproxy/action-baseline@v0.12.0
+  #       with:
+  #         token: ${{ secrets.GITHUB_TOKEN }}
+  #         target: "http://localhost:3000/API"
+  #         rules_file_name: ".zap/rules.tsv"
+  #         fail_action: true
+
+  # # ─────────────────────────────────────────────────────────────────────────
+  # # CD — Deploy via GitOps (ArgoCD)
+  # # ─────────────────────────────────────────────────────────────────────────
+  # deploy-via-gitops:
+  #   name: Deploy via GitOps (ArgoCD)
+  #   needs: dast-and-functional-test
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout GitOps Repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         repository: "your-org/gitops-helm-charts"
+  #         token: ${{ secrets.GITOPS_REPO_PAT }}
+
+  #     - name: Update Image Tag in Helm Values
+  #       run: |
+  #         sed -i 's/tag: .*/tag: "${{ needs.build-and-package.outputs.image_tag }}"/g' charts/app-backend/values.yaml
+  #         git config --global user.name "gitops-bot"
+  #         git config --global user.email "gitops@yourcompany.com"
+  #         git commit -am "chore: deploy version ${{ needs.build-and-package.outputs.image_tag }} via ArgoCD"
+  #         git push

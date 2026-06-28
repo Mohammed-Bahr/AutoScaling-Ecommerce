@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-
 const Modal = ({ isOpen, onClose, children }) => {
   return (
     <>
