@@ -390,7 +390,6 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────
   lint-test-build:
     name: Lint, Test & Build
-    needs: secret-scan
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
