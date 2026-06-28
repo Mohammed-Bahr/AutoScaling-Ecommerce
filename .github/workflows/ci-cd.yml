@@ -542,7 +542,7 @@ jobs:
 
       - name: build backend image
         working-directory: ./backend
-        run: docker build -t mohammedbahr/depi-project-backend:latest
+        run: docker build -t mohammedbahr/depi-project-backend:latest .
 
       - name: push backend image
         working-directory: ./backend
@@ -553,7 +553,7 @@ jobs:
       # ---------- For frontend image ------------
       - name: build frontend image
         working-directory: ./frontend
-        run: docker build -t mohammedbahr/depi-project-frontend:latest
+        run: docker build -t mohammedbahr/depi-project-frontend:latest .
 
       - name: push frontend image
         working-directory: ./frontend
