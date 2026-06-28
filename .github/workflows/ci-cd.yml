@@ -111,7 +111,7 @@ jobs:
     # Each matrix entry runs a fully parallel job.
     strategy:
       matrix:
-        node-version: [22]
+        node-version: [20]
 
     steps:
       - name: Checkout Code

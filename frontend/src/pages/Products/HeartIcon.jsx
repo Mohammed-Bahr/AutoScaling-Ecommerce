@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 import {
   addToFavorites,
   removeFromFavorites,
@@ -24,7 +25,7 @@ const HeartIcon = ({ product }) => {
   useEffect(() => {
     const favoritesFromLocalStorage = getFavoritesFromLocalStorage();
     dispatch(setFavorites(favoritesFromLocalStorage));
-  }, []);
+  }, [dispatch]);
 
   const toggleFavorites = () => {
     if (!userInfo) {
@@ -53,6 +54,12 @@ const HeartIcon = ({ product }) => {
       )}
     </div>
   );
+};
+
+HeartIcon.propTypes = {
+  product: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+  }).isRequired,
 };
 
 export default HeartIcon;
