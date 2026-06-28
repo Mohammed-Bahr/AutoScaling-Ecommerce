@@ -457,29 +457,12 @@ jobs:
     name: SonarQube Analysis
     needs: lint-test-build
     runs-on: ubuntu-latest
-    timeout-minutes: 10
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
-      # ✅ BUG FIX #2 — SonarQube was returning HTTP 404 on /api/server/version.
-      # Root cause: SONAR_HOST_URL secret was either pointing to the wrong path
-      # (e.g., had a trailing slash, an /api suffix, or a /sonarqube sub-path),
-      # OR the ngrok tunnel had expired and the URL was stale.
-      #
-      # HOW TO FIX THE SECRET:
-      #   • Go to your repo → Settings → Secrets → Actions → SONAR_HOST_URL
-      #   • The value must be the bare root URL of SonarQube, nothing else:
-      #       ✅  https://xxxx.ngrok-free.app
-      #       ✅  http://your-host:9000
-      #       ❌  https://xxxx.ngrok-free.app/         ← trailing slash
-      #       ❌  https://xxxx.ngrok-free.app/api      ← /api suffix
-      #       ❌  https://xxxx.ngrok-free.app/sonar    ← sub-path
-      #   • If you're using ngrok without a paid static domain, update this
-      #     secret every time you restart ngrok (the URL changes each restart).
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v8.2.0
         env:
