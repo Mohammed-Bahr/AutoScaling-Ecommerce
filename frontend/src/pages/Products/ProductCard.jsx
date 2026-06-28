@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineShoppingCart } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
+import PropTypes from "prop-types";
 import { addToCart } from "../../redux/features/cart/cartSlice";
 import { toast } from "react-toastify";
 import HeartIcon from "./HeartIcon";
@@ -93,6 +94,17 @@ const ProductCard = ({ p }) => {
       </div>
     </div>
   );
+};
+
+ProductCard.propTypes = {
+  p: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    brand: PropTypes.string,
+    image: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    price: PropTypes.number.isRequired,
+    description: PropTypes.string.isRequired,
+  }).isRequired,
 };
 
 export default ProductCard;
