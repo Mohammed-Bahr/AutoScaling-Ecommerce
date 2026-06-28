@@ -468,6 +468,10 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            sonar.projectKey=${{ secrets.ORG_KEY}}
+            sonar.organization=mohammed-bahr
 
   # ─────────────────────────────────────────────────────────────────────────
   # CD — Build & Push Docker Image
