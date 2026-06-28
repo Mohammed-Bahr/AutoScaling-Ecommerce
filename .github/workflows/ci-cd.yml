@@ -536,30 +536,26 @@ jobs:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
     steps:
-      # ---------- For backend image ------------
+      # ---------- Checkout ------------
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Login to Docker Hub
+        run: docker login -u mohammedbahr -p ${{ secrets.DOCKER_TOKEN }}
+
+      # ---------- Backend ------------
       - name: build backend image
-        working-directory: ./backend
-        run: docker build -t mohammedbahr/depi-project-backend:latest .
+        run: docker build -t mohammedbahr/depi-project-backend:latest -f backend/dockerfile .
 
       - name: push backend image
-        working-directory: ./backend
-        run: |
-          docker login -u mohammedbahr -p ${{ secrets.DOCKER_TOKEN }}
-          docker push mohammedbahr/depi-project-backend:latest
+        run: docker push mohammedbahr/depi-project-backend:latest
 
-      # ---------- For frontend image ------------
+      # ---------- Frontend ------------
       - name: build frontend image
-        working-directory: ./frontend
-        run: docker build -t mohammedbahr/depi-project-frontend:latest .
+        run: docker build -t mohammedbahr/depi-project-frontend:latest -f frontend/dockerfile .
 
       - name: push frontend image
-        working-directory: ./frontend
-        run: |
-          docker login -u mohammedbahr -p ${{ secrets.DOCKER_TOKEN }}
-          docker push mohammedbahr/depi-project-frontend:latest
+        run: docker push mohammedbahr/depi-project-frontend:latest
 
   # # ─────────────────────────────────────────────────────────────────────────
   # # CD — DAST & Functional Tests
