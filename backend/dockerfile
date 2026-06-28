@@ -17,7 +17,7 @@ COPY package*.json ./
 RUN npm install --omit=dev && npm cache clean --force
 
 COPY --from=builder /usr/src/app/backend ./backend
-COPY --from=builder /usr/src/app/uploads ./uploads
+# COPY --from=builder /usr/src/app/uploads ./uploads
 
 EXPOSE 5000
 
