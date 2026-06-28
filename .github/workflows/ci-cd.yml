@@ -547,7 +547,7 @@ jobs:
       - name: push backend image
         working-directory: ./backend
         run: |
-          docker login -u mohammedbahr -p ${{ secrets.REGISTRY_PASSWORD }}
+          docker login -u mohammedbahr -p ${{ secrets.DOCKER_TOKEN }}
           docker push mohammedbahr/depi-project-backend:latest
 
       # ---------- For frontend image ------------
@@ -558,7 +558,7 @@ jobs:
       - name: push frontend image
         working-directory: ./frontend
         run: |
-          docker login -u mohammedbahr -p ${{ secrets.REGISTRY_PASSWORD }}
+          docker login -u mohammedbahr -p ${{ secrets.DOCKER_TOKEN }}
           docker push mohammedbahr/depi-project-frontend:latest
 
   # # ─────────────────────────────────────────────────────────────────────────
