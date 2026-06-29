@@ -588,7 +588,10 @@ jobs:
           ref: main
 
       - name: Start the application
-        run: docker compose up -d --wait
+        run: |
+          docker compose down --remove-orphans
+          docker compose up -d
+          timeout 60 bash -c 'while ! curl -s -o /dev/null http://localhost:3000/; do sleep 2; done'
 
       - name: ZAP Scan
         uses: zaproxy/action-full-scan@v0.13.0
