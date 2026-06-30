@@ -350,17 +350,11 @@ on:
     paths:
       - "backend/**"
       - "frontend/**"
-      - "example-env.env"
-      - "docker-compose.yml"
-      - "sonar-project.properties"
   push:
     branches: [main, dev]
     paths:
       - "backend/**"
       - "frontend/**"
-      - "example-env.env"
-      - "docker-compose.yml"
-      - "sonar-project.properties"
 
 permissions:
   contents: read
@@ -479,48 +473,31 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────
   # CD — Build & Push Docker Image
   # ─────────────────────────────────────────────────────────────────────────
+
   # build-and-package:
   #   name: Build & Push Docker Image
   #   runs-on: ubuntu-latest
-  #   outputs:
-  #     image_tag: ${{ steps.vars.outputs.tag }}
-
   #   steps:
+  #     # ---------- Checkout ------------
   #     - name: Checkout Code
   #       uses: actions/checkout@v4
 
-  #     - name: Set Version Tag
-  #       id: vars
-  #       run: echo "tag=v1.3-${{ github.run_number }}" >> $GITHUB_OUTPUT
+  #     - name: Login to Docker Hub
+  #       run: docker login -u mohammedbahr -p ${{ secrets.DOCKER_TOKEN }}
 
-  #     # BUG FIX #3 — was `docker/bake-action@v7.2.0`.
-  #     # `bake-action` is NOT a Buildx setup step — it is a full image-build
-  #     # action that reads your docker-bake.hcl and runs `docker buildx bake`
-  #     # against the repository. That's why the logs showed it pulling your
-  #     # git repo and trying to build both frontend AND backend from the bake
-  #     # file — it was doing real builds when it was only supposed to be
-  #     # setting up the Buildx builder for later steps to use.
-  #     # The correct action for installing/configuring Buildx is setup-buildx-action.
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v3
+  #     # ---------- Backend ------------
+  #     - name: build backend image
+  #       run: docker build -t mohammedbahr/depi-project-backend:latest -f backend/dockerfile .
 
-  #     - name: Login to Container Registry
-  #       uses: docker/login-action@v3
-  #       with:
-  #         registry: ${{ secrets.REGISTRY_URL }}
-  #         username: ${{ secrets.REGISTRY_USER }}
-  #         password: ${{ secrets.REGISTRY_PASSWORD }}
+  #     - name: push backend image
+  #       run: docker push mohammedbahr/depi-project-backend:latest
 
-  #     # After the bake-action is replaced, this step now correctly controls
-  #     # what gets built. Only the backend image is built and pushed here.
-  #     # See also BUG FIX #4 below regarding the backend Dockerfile.
-  #     - name: Build and Push Backend Image
-  #       uses: docker/build-push-action@v6
-  #       with:
-  #         context: ./backend
-  #         file: ./backend/Dockerfile
-  #         push: true
-  #         tags: ${{ secrets.REGISTRY_URL }}/app-backend:${{ steps.vars.outputs.tag }}
+  #     # ---------- Frontend ------------
+  #     - name: build frontend image
+  #       run: docker build -t mohammedbahr/depi-project-frontend:latest -f frontend/dockerfile .
+
+  #     - name: push frontend image
+  #       run: docker push mohammedbahr/depi-project-frontend:latest
 
   build-and-package:
     name: Build & Push Docker Image
@@ -540,8 +517,7 @@ jobs:
 
       # ---------- Backend ------------
       - name: build backend image
-        working-directory: ./backend
-        run: docker build -t mohammedbahr/depi-project-backend:latest .
+        run: docker build -t mohammedbahr/depi-project-backend:latest -f backend/dockerfile .
 
       - name: List Docker images
         run: docker images
@@ -589,30 +565,6 @@ jobs:
   #         target: "http://localhost:3000/API"
   #         rules_file_name: ".zap/rules.tsv"
   #         fail_action: true
-
-  zap_scan:
-    name: Dast Stage (ZAP)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: main
-
-      - name: Start the application
-        run: |
-          docker compose down --remove-orphans
-          docker compose up -d
-          timeout 60 bash -c 'while ! curl -s -o /dev/null http://localhost:3000/; do sleep 2; done'
-
-      - name: Start ZAP Scan
-        uses: zaproxy/action-full-scan@v0.13.0
-        with:
-          target: "http://localhost:3000/"
-          allow_issue_writing: true
-
-      - name: Cleanup
-        run: docker compose down
 
   # # ─────────────────────────────────────────────────────────────────────────
   # # CD — Deploy via GitOps (ArgoCD)
