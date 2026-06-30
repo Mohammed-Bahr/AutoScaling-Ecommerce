@@ -2,32 +2,33 @@ services:
   mongo:
     image: mongo:8
     container_name: mongo
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh --quiet
-      interval: 10s
-      retries: 5
     ports:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
 
   backend:
-    image: mohammedbahr/depi-project-backend
-    restart: unless-stopped
-    depends_on:
-      mongo:
-        condition: service_healthy
-    env_file: .env
+    image: mohammedbahr/depi-project-backend:latest
+    pull_policy: always
+    container_name: backend
     ports:
       - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/depi-project
+      - PORT=5000
+      - JWT_SECRET=abac12afsdkjladf
+      - NODE_ENV=production
+    depends_on:
+      - mongo
 
   frontend:
-    image: mohammedbahr/depi-project-frontend
-    restart: unless-stopped
-    depends_on:
-      - backend
+    image: mohammedbahr/depi-project-frontend:latest
+    pull_policy: always
+    container_name: frontend
     ports:
       - "3000:80"
+    depends_on:
+      - backend
 
 volumes:
   mongo_data:
