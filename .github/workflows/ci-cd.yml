@@ -536,14 +536,14 @@ jobs:
 
       # ---------- Backend ------------
       - name: build backend image
-        run: docker build -t mohammedbahr/depi-project-backend:latest -f backend/dockerfile .
+        run: docker build -t mohammedbahr/depi-project-backend:latest -f backend/dockerfile ./backend
 
       - name: push backend image
         run: docker push mohammedbahr/depi-project-backend:latest
 
       # ---------- Frontend ------------
       - name: build frontend image
-        run: docker build -t mohammedbahr/depi-project-frontend:latest -f frontend/dockerfile .
+        run: docker build -t mohammedbahr/depi-project-frontend:latest -f frontend/dockerfile ./frontend
 
       - name: push frontend image
         run: docker push mohammedbahr/depi-project-frontend:latest
@@ -579,7 +579,7 @@ jobs:
   #         fail_action: true
 
   zap_scan:
-    name: Scan the webapplication
+    name: Dast Stage (ZAP)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -593,7 +593,7 @@ jobs:
           docker compose up -d
           timeout 60 bash -c 'while ! curl -s -o /dev/null http://localhost:3000/; do sleep 2; done'
 
-      - name: ZAP Scan
+      - name: Start ZAP Scan
         uses: zaproxy/action-full-scan@v0.13.0
         with:
           target: "http://localhost:3000/"
