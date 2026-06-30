@@ -347,14 +347,14 @@ name: "CI/CD Pipeline"
 on:
   pull_request:
     branches: [main, dev]
-    paths:
-      - "backend/**"
-      - "frontend/**"
+    # paths:
+    #   - "backend/**"
+    #   - "frontend/**"
   push:
     branches: [main, dev]
-    paths:
-      - "backend/**"
-      - "frontend/**"
+    # paths:
+    #   - "backend/**"
+    #   - "frontend/**"
 
 permissions:
   contents: read
