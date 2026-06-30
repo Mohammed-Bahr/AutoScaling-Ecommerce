@@ -517,8 +517,7 @@ jobs:
 
       # ---------- Backend ------------
       - name: build backend image
-        working-directory: ./backend
-        run: docker build -t mohammedbahr/depi-project-backend:latest .
+        run: docker build -t mohammedbahr/depi-project-backend:latest -f backend/dockerfile .
 
       - name: List Docker images
         run: docker images
