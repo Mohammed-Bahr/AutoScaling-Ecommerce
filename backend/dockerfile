@@ -6,9 +6,8 @@ COPY package*.json ./
 
 RUN npm install --omit=dev && npm cache clean --force
 
-COPY backend/ ./backend/
-# COPY uploads/ ./uploads/
+COPY backend/ .
 
 EXPOSE 5000
 
-CMD ["node", "backend/index.js"]
+CMD ["node", "index.js"]
