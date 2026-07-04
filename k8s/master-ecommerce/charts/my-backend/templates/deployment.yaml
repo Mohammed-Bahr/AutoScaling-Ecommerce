@@ -20,24 +20,10 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
-          env:
-            - name: PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "backend.fullname" . }}-config
-                  key: PORT
-            - name: MONGO_URI
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "backend.fullname" . }}-config
-                  key: MONGO_URI
-            - name: NODE_ENV
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "backend.fullname" . }}-config
-                  key: NODE_ENV
-            - name: JWT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "backend.fullname" . }}-secret
-                  key: JWT_SECRET
+          
+          # The clean, modern way to inject everything at once:
+          envFrom:
+            - configMapRef:
+                name: {{ include "backend.fullname" . }}-config
+            - secretRef:
+                name: {{ include "backend.fullname" . }}-secret
