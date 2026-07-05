@@ -1,0 +1,26 @@
+replicaCount: 2
+
+image:
+  repository: mohammedbahr/depi-project-backend
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 5000
+
+fullnameOverride: "backend"
+
+ingress:
+  className: "nginx"
+  host: "ecommerce.local.192.168.1.201.nip.io"
+  path: "/api"
+  pathType: "Prefix"
+
+config:
+  mongoUri: "mongodb://mahmoud:1234@my-prod-db-mongodb.ecom.svc.cluster.local:27017/depi-project"
+  port: "5000"
+  nodeEnv: "production"
+
+secret:
+  jwtSecret: "abac12afsdkjladf"

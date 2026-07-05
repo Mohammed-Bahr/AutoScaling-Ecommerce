@@ -1,0 +1,14 @@
+# `./master-ecommerce/values.yaml`
+
+# 1. Override Frontend Replicas
+frontend:
+  replicaCount: 4
+  ingress:
+    host: "ecommerce.local.192.168.1.201.nip.io"    
+
+# 2. Override Backend Replicas of 
+backend:
+  replicaCount: 4
+  ingress:
+    host: "ecommerce.local.192.168.1.201.nip.io"
+

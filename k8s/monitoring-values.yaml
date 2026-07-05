@@ -1,0 +1,30 @@
+# 1. PERMANENT STORAGE CONFIGURATION
+prometheus:
+  prometheusSpec:
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi # Adjust based on your available disk space
+
+grafana:
+  persistence:
+    enabled: true
+    storageClassName: local-path
+    accessModes: ["ReadWriteOnce"]
+    size: 2Gi
+
+  # 2. NETWORK EXPOSURE CONFIGURATION (Choose Option A OR Option B)
+  
+  # OPTION A: Expose via your Ingress Controller (Recommended)
+  ingress:
+    enabled: true
+    ingressClassName: nginx  # Change to your ingress class if not nginx (e.g., traefik)
+    hosts:
+      - grafana.local.192.168.1.201.nip.io        # The domain you want to use to access Grafana
+    path: /
+
+
