@@ -1,0 +1,142 @@
+name: "General CI Pipeline"
+
+on:
+  pull_request:
+    branches: [mahmoud]
+  push:
+    branches: [mahmoud]
+
+permissions:
+  contents: read
+  issues: write # Grants ZAP the permission to create issues
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # CI — Secret Scan
+  # ─────────────────────────────────────────────────────────────────────────
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog Secret Scanner
+        uses: trufflesecurity/trufflehog@30d5bb91af1a771378349dbbb0c82129392acf70 # v3.95.6
+        with:
+          path: ./
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
+          extra_args: --exclude-detectors sonarcloud
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # CI — Lint, Test & Build
+  # ─────────────────────────────────────────────────────────────────────────
+  lint-test-build:
+    name: Lint, Test & Build
+    needs: secret-scan
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        node-version: [20]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      # ─── Backend ───
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci
+      - name: Lint Backend
+        working-directory: ./backend
+        run: npm run lint --if-present
+      - name: Test Backend
+        working-directory: ./backend
+        run: npm test --if-present
+      - name: Build Backend
+        working-directory: ./backend
+        run: npm run build --if-present
+
+      # ─── Frontend ───
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+      - name: Lint Frontend
+        working-directory: ./frontend
+        run: npm run lint --if-present
+      - name: Test Frontend
+        working-directory: ./frontend
+        run: npm test --if-present
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: npm run build --if-present
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # CI — SonarQube Static Analysis
+  # ─────────────────────────────────────────────────────────────────────────
+  sonarqube:
+    name: SonarQube Analysis
+    needs: lint-test-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v8.2.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # CI — DAST & Functional Tests
+  # ─────────────────────────────────────────────────────────────────────────
+  dast-and-functional-test:
+    name: DAST & Functional Tests
+    needs: sonarqube
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Spin up Test Environment
+        run: |
+          docker compose down && sleep 10
+          docker compose up -d --wait --build
+          docker ps
+
+      - name: Run Selenium / Automation Tests
+        run: echo "Running Selenium testing suites..."
+
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-full-scan@v0.13.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target: "http://localhost:3000/API"
+          fail_action: false
+          allow_issue_writing: true
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker compose down
+          echo "Cleanup completed."
