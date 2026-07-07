@@ -2,7 +2,7 @@ name: "CD - Frontend Docker Image"
 
 on:
   push:
-    branches: [main]
+    branches: [mahmoud]
     paths:
       - "frontend/**"
       - ".github/workflows/cd-frontend.yml"
