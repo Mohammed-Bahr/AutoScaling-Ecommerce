@@ -9,13 +9,12 @@ spec:
   source:
     # 1. CHANGE THIS: Put the URL of your actual GitHub repository here
     repoURL: 'https://github.com/Mohammed-Bahr/AutoScaling-Ecommerce.git'
-    
     # 2. Branch name (HEAD usually means 'main' or 'master')
     targetRevision: mahmoud
     
     # 3. CHANGE THIS (if needed): This must be the exact name of the folder 
     # inside your Git repo that contains your master umbrella Chart.yaml
-    path: master-ecommerce 
+    path: k8s/master-ecommerce 
     
   destination:
     # This means "Deploy to the same cluster that ArgoCD is running on"
