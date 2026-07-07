@@ -2,9 +2,9 @@ name: "General CI Pipeline"
 
 on:
   pull_request:
-    branches: [mahmoud]
+    branches: [main]
   push:
-    branches: [mahmoud]
+    branches: [main]
 
 permissions:
   contents: read
