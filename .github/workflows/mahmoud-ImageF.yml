@@ -1,11 +1,13 @@
 name: "CD - Frontend Docker Image"
 
 on:
+  workflow_dispatch:
   push:
-    branches: [mahmoud]
+    branches:
+      - 'mahmoud'
     paths:
-      - "frontend/**"
-      - ".github/workflows/cd-frontend.yml"
+      - 'frontend/**'
+      - '.github/workflows/cd-frontend.yml'
 
 jobs:
   build-and-push-frontend:
