@@ -1,4 +1,5 @@
-FROM node:20-alpine
+# 1. Use Debian slim instead of Alpine to prevent the 254 crash
+FROM node:20-bookworm-slim
 
 WORKDIR /usr/src/app
 
@@ -6,6 +7,7 @@ COPY package*.json ./
 
 RUN npm install --omit=dev && npm cache clean --force
 
+# 2. Use "." instead of "backend/" because GitHub Actions is already inside the backend folder
 COPY . .
 
 EXPOSE 5000
