@@ -1,5 +1,6 @@
 name: "CD - Backend Docker Image"
-
+permissions: 
+  contents: write
 on:
   push:
     branches: [mahmoud]
