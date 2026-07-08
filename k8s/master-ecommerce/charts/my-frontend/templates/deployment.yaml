@@ -6,7 +6,7 @@ metadata:
     app: {{ include "my-frontend.name" . }}
 spec:
   replicas: {{ .Values.replicaCount }}
-  revisionHistoryLimit: {{ .Values.frontend.revisionHistoryLimit | default 2 }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit | default 2 }}
   selector:
     matchLabels:
       app: {{ include "my-frontend.name" . }}
