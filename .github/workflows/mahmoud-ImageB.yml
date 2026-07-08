@@ -1,4 +1,4 @@
-name: "CD - Backend Docker Image "
+name: "CD - Backend Docker Image"
 
 on:
   push:
