@@ -5,8 +5,8 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN npm install --omit=dev && npm cache clean --force
-
+#RUN npm install --omit=dev && npm cache clean --force
+RUN npm install --omit=dev --verbose && npm cache clean --force
 # 2. Use "." instead of "backend/" because GitHub Actions is already inside the backend folder
 COPY . .
 
