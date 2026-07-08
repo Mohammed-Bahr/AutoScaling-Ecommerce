@@ -5,7 +5,7 @@ on:
     branches: [mahmoud]
     paths:
       - "backend/**"
-      - ".github/workflows/cd-backend.yml"
+      - ".github/workflows/mahmoud-ImageB.yml"
 
 jobs:
   build-and-push-backend:
