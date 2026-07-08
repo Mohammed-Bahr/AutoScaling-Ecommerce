@@ -1,5 +1,6 @@
 name: "CD - Frontend Docker Image"
-
+permissions: 
+  contents: write
 on:
   workflow_dispatch:
   push:
@@ -7,7 +8,7 @@ on:
       - mahmoud
     paths:
       - 'frontend/**'
-      - '.github/workflows/mahmoud-ImageF.yml'
+      - '.github/workflows/mahmoud-ImageF.yml' #will comment this after the test is over
 
 jobs:
   build-and-push-frontend:
@@ -34,3 +35,27 @@ jobs:
         run: |
           docker push mohammedbahr/depi-project-frontend:${{ github.run_id }}
           docker push mohammedbahr/depi-project-frontend:latest
+      - name: update values helm
+        working-directory: ./k8s/master-ecommerce/
+        run: |
+          # Use yq to safely update ONLY the frontend tag in the YAML structure
+          yq -i '.frontend.image.tag = "${{ github.run_id }}"' values.yaml
+          
+          # Verify the change in the logs
+          echo "Verified values.yaml update:"
+          cat values.yaml
+      - name: commit and push infra changes
+        working-directory: ./k8s/master-ecommerce/
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Stage the updated values file
+          git add values.yaml
+          
+          # Commit the change
+          git commit -m "infra: update frontend image tag to ${{ github.run_id }}"
+          
+          # Push back to the mahmoud branch
+          git push origin mahmoud
+           
