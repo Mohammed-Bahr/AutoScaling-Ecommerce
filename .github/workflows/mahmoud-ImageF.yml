@@ -7,11 +7,10 @@ on:
       - mahmoud
     paths:
       - 'frontend/**'
-      - '.github/workflows/mahmoud-ImageF.yml'     
+      - '.github/workflows/mahmoud-ImageF.yml'
 
 jobs:
   build-and-push-frontend:
-# ... the rest of your file stays exactly the same
     name: Build & Push Frontend Image
     runs-on: ubuntu-latest
     steps:
