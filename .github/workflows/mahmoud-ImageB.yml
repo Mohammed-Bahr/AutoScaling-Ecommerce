@@ -1,4 +1,4 @@
-name: "CD - Backend Docker Image"
+name: "CD - Backend Docker Image "
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Build backend image
-        run: docker build -t mohammedbahr/depi-project-backend:11 -f backend/dockerfile .
+        run: docker build -t mohammedbahr/depi-project-backend:latest -f backend/dockerfile .
 
       - name: Push backend image
-        run: docker push mohammedbahr/depi-project-backend:11
+        run: docker push mohammedbahr/depi-project-backend:latest
