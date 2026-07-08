@@ -42,8 +42,8 @@ jobs:
           yq -i '.frontend.image.tag = "${{ github.run_id }}"' values.yaml
           
           # Verify the change in the logs
-          echo "Verified values.yaml update:"
-          cat values.yaml
+          #echo "Verified values.yaml update:"
+          #cat values.yaml
       - name: commit and push infra changes
         working-directory: ./k8s/master-ecommerce/
         run: |

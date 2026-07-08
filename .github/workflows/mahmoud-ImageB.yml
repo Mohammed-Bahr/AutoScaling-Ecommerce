@@ -22,7 +22,36 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Build backend image
-        run: docker build -t mohammedbahr/depi-project-backend:latest -f backend/dockerfile .
+        run: |
+          docker build \
+            -t mohammedbahr/depi-project-backend:${{ github.run_id }} \
+            -t mohammedbahr/depi-project-backend:latest .
+
 
       - name: Push backend image
-        run: docker push mohammedbahr/depi-project-backend:latest
+        run: |
+          docker push mohammedbahr/depi-project-backend:${{ github.run_id }}
+          docker push mohammedbahr/depi-project-backend:latest
+      - name: update values helm
+        working-directory: ./k8s/master-ecommerce/
+        run: |
+          # Use yq to safely update ONLY the backend tag in the YAML structure
+          yq -i '.backend.image.tag = "${{ github.run_id }}"' values.yaml
+          
+          # Verify the change in the logs
+          echo "Verified values.yaml update:"
+          cat values.yaml
+      - name: commit and push infra changes
+        working-directory: ./k8s/master-ecommerce/
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Stage the updated values file
+          git add values.yaml
+          
+          # Commit the change
+          git commit -m "infra: update backend image tag to ${{ github.run_id }}"
+          
+          # Push back to the mahmoud branch
+          git push origin mahmoud    
