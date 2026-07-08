@@ -12,7 +12,7 @@ frontend:
 # 2. Override Backend Replicas of 
 backend:
   replicaCount: 3
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 3
   image:
     tag: "28963050817"
   ingress:
