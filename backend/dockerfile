@@ -1,28 +1,13 @@
-# --- Stage 1: Build Stage ---
-FROM node:20-alpine AS builder
-
-WORKDIR /usr/src/app
-
-COPY package*.json ./
-RUN npm install
-
-# Copies everything (including the backend folder) into /usr/src/app
-COPY . . 
-
-# --- Stage 2: Production Stage ---
 FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
 COPY package*.json ./
+
 RUN npm install --omit=dev && npm cache clean --force
 
-# 1. Copy the backend code from the builder stage
-COPY --from=builder /usr/src/app/backend ./backend
-
-# 2. INSTEAD OF COPYING UPLOADS: Safely create an empty uploads directory 
-RUN mkdir -p backend/uploads
+COPY backend/ .
 
 EXPOSE 5000
 
-CMD ["node", "backend/index.js"]
+CMD ["node", "index.js"]
