@@ -25,7 +25,12 @@ jobs:
 
       - name: Build frontend image
         working-directory: ./frontend
-        run: docker build -t mohammedbahr/depi-project-frontend:latest .
+        run: |
+          docker build \
+            -t mohammedbahr/depi-project-frontend:${{ github.run_id }} \
+            -t mohammedbahr/depi-project-frontend:latest .
 
       - name: Push frontend image
-        run: docker push mohammedbahr/depi-project-frontend:latest
+        run: |
+          docker push mohammedbahr/depi-project-frontend:${{ github.run_id }}
+          docker push mohammedbahr/depi-project-frontend:latest
