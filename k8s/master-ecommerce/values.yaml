@@ -5,7 +5,7 @@ frontend:
   replicaCount: 2
   revisionHistoryLimit: 2
   image:
-    tag: "29026000226"
+    tag: "29026895187"
   ingress:
     host: "ecommerce.local.192.168.1.201.nip.io"
     name: frontend-ingress
