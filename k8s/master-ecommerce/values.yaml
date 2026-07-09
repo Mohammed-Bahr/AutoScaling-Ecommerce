@@ -14,6 +14,6 @@ backend:
   replicaCount: 3
   revisionHistoryLimit: 3
   image:
-    tag: "28963050817"
+    tag: "29022897785"
   ingress:
     host: "ecommerce.local.192.168.1.201.nip.io"
