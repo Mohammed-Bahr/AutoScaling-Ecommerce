@@ -78,7 +78,7 @@ const ProductDetails = () => {
         <Loader />
       ) : error ? (
         <Message variant="danger">
-          {error?.data?.message || error.message}
+          {error?.data?.error || error?.data?.message || error.message}
         </Message>
       ) : (
         <>
@@ -109,7 +109,7 @@ const ProductDetails = () => {
                   </h1>
                   <h1 className="flex items-center mb-6 w-[20rem]">
                     <FaClock className="mr-2 text-white" /> Added:{" "}
-                    {moment(product.createAt).fromNow()}
+                    {moment(product.createdAt).fromNow()}
                   </h1>
                   <h1 className="flex items-center mb-6">
                     <FaStar className="mr-2 text-white" /> Reviews:{" "}
