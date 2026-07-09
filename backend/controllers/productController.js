@@ -108,8 +108,7 @@ const fetchProductById = asyncHandler(async (req, res) => {
   if (product) {
     return res.json(product);
   }
-  res.status(404);
-  throw new Error("Product not found");
+  res.status(404).json({ message: "Product not found" });
 });
 
 const fetchAllProducts = asyncHandler(async (req, res) => {

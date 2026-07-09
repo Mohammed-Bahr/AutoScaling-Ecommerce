@@ -78,7 +78,7 @@ const ProductDetails = () => {
         <Loader />
       ) : error ? (
         <Message variant="danger">
-          {error?.data?.error || error?.data?.message || error.message}
+          {error?.data?.message || error?.data?.error || error.error || "Something went wrong"}
         </Message>
       ) : (
         product && (
