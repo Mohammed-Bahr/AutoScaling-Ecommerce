@@ -1,4 +1,7 @@
 name: "CD - Frontend Docker Image"
+concurrency: 
+  group: update-image-tag
+  cancel-in-progress: false
 permissions: 
   contents: write
 on:
@@ -56,6 +59,9 @@ jobs:
           # Commit the change
           git commit -m "infra: update frontend image tag to ${{ github.run_id }}"
           
+          #pull the latest
+          git pull origin mahmoud --rebase
+
           # Push back to the mahmoud branch
           git push origin mahmoud
            
