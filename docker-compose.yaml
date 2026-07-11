@@ -8,9 +8,8 @@ services:
       - mongo_data:/data/db
 
   backend:
-    build:
-      context: .
-      dockerfile: backend/dockerfile
+    image: mohammedbahr/depi-project-backend:latest
+    pull_policy: always
     container_name: backend
     ports:
       - "5000:5000"
@@ -23,7 +22,8 @@ services:
       - mongo
 
   frontend:
-    build: ./frontend
+    image: mohammedbahr/depi-project-frontend:latest
+    pull_policy: always
     container_name: frontend
     ports:
       - "3000:80"
