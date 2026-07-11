@@ -29,13 +29,13 @@ jobs:
           username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Build and Push Backend Image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          file: ./backend/Dockerfile
-          push: true
-          tags: ${{ secrets.REGISTRY_URL }}/app-backend:${{ steps.vars.outputs.tag }}
+      # - name: Build and Push Backend Image
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: ./backend
+      #     file: ./backend/Dockerfile
+      #     push: true
+      #     tags: ${{ secrets.REGISTRY_URL }}/app-backend:${{ steps.vars.outputs.tag }}
 
   # dast-and-functional-test:
   #   needs: build-and-package

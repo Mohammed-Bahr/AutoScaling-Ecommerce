@@ -6,7 +6,7 @@ permissions:
   contents: write
 on:
   push:
-    branches: [mahmoud]
+    branches: [mahmoud,dev]
     paths:
       - "backend/**"
       - ".github/workflows/mahmoud-ImageB.yml"

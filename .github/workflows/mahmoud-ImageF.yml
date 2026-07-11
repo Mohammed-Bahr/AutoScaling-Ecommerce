@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - mahmoud
+      - dev
     paths:
       - 'frontend/**'
       - '.github/workflows/mahmoud-ImageF.yml' #will comment this after the test is over
