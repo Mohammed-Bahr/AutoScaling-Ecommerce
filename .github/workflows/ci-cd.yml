@@ -1,0 +1,219 @@
+name: "CI/CD Pipeline"
+
+on:
+  pull_request:
+    branches: [main, dev]
+    # paths:
+    #   - "backend/**"
+    #   - "frontend/**"
+  push:
+    branches: [main, dev]
+    # paths:
+    #   - "backend/**"
+    #   - "frontend/**"
+
+permissions:
+  contents: read
+  issues: write # i by doing this give the zap the permission to create issues instead of failing the workflow
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # CI — Secret Scan
+  # ─────────────────────────────────────────────────────────────────────────
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog Secret Scanner
+        uses: trufflesecurity/trufflehog@30d5bb91af1a771378349dbbb0c82129392acf70 # v3.95.6
+        with:
+          path: ./
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
+          extra_args: --exclude-detectors sonarcloud
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # CI — Lint, Test & Build
+  # ─────────────────────────────────────────────────────────────────────────
+  lint-test-build:
+    name: Lint, Test & Build
+    needs: secret-scan
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      matrix:
+        node-version: [20]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      # ─── Backend ──────────────────────────────────────────────────────────
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Lint Backend
+        working-directory: ./backend
+        run: npm run lint --if-present
+
+      - name: Test Backend
+        working-directory: ./backend
+        run: npm test --if-present
+
+      - name: Build Backend
+        working-directory: ./backend
+        run: npm run build --if-present
+
+      # ─── Frontend ─────────────────────────────────────────────────────────
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Lint Frontend
+        working-directory: ./frontend
+        run: npm run lint --if-present
+
+      - name: Test Frontend
+        working-directory: ./frontend
+        run: npm test --if-present
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: npm run build --if-present
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # CI — SonarQube Static Analysis
+  # ─────────────────────────────────────────────────────────────────────────
+
+  sonarqube:
+    name: SonarQube Analysis
+    needs: lint-test-build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v8.2.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # CD — Build & Push Docker Image
+  # ─────────────────────────────────────────────────────────────────────────
+
+  build-and-package:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      # ---------- Checkout ------------
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # - name: Login to Docker Hub
+      #   run: docker login -u mohammedbahr -p ${{ secrets.DOCKER_TOKEN }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4.2.0
+        with:
+          username: mohammedbahr
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      # ---------- Backend ------------
+      # # - name: build backend image
+      # #   run: docker build -t mohammedbahr/depi-project-backend:latest -f backend/dockerfile .
+
+      # - name: List Docker images
+      #   run: docker images
+
+      # - name: push backend image
+      #   run: docker push mohammedbahr/depi-project-backend:latest
+
+      # ---------- Frontend ------------
+      # - name: build frontend image
+      #   working-directory: ./frontend
+      #   run: docker build -t mohammedbahr/depi-project-frontend:latest .
+
+      # - name: List Docker images
+      #   run: docker images
+
+      # - name: push frontend image
+      #   run: docker push mohammedbahr/depi-project-frontend:latest
+
+  # # ─────────────────────────────────────────────────────────────────────────
+  # # CD — DAST & Functional Tests
+  # # ─────────────────────────────────────────────────────────────────────────
+
+  dast-and-functional-test:
+    name: DAST & Functional Tests
+    needs: build-and-package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Spin up Test Environment
+        run: |
+          docker compose down && sleep 10
+          docker compose up -d --wait
+          docker ps
+
+      - name: Run Selenium / Automation Tests
+        run: |
+          echo "Running Selenium testing suites..."
+
+      - name: OWASP ZAP Baseline Scan
+        # uses: zaproxy/action-baseline@v0.12.0
+        uses: zaproxy/action-full-scan@v0.13.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target: "http://localhost:3000/API"
+          # rules_file_name: ".zap/rules.tsv"
+          fail_action: false
+          allow_issue_writing: true
+
+      - name: Cleanup
+        run: |
+          docker compose down
+          echo "Cleanup completed."
+
+  # zap_scan:
+  #   name: Scan the webapplication
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: main
+  #     - name: ZAP Scan
+  #       uses: zaproxy/action-full-scan@v0.13.0
+  #       with:
+  #         # token: ${{ secrets.GITHUB_TOKEN }}
+  #         # docker_name: "ghcr.io/zaproxy/zaproxy:stable"
+  #         target: "http://localhost:3000/"
