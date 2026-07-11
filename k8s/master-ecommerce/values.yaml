@@ -11,7 +11,7 @@ frontend:
     name: frontend-ingress
 # 2. Override Backend Replicas of 
 backend:
-  replicaCount: 3
+  replicaCount: 2
   revisionHistoryLimit: 3
   image:
     tag: "29157911641"
