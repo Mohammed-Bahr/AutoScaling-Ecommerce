@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "backend.fullname" . }}-deployment
+  labels:
+    {{- include "backend.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit | default 2 }}
+
+  selector:
+    matchLabels:
+      {{- include "backend.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "backend.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ include "backend.fullname" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          
+          # The clean, modern way to inject everything at once:
+          envFrom:
+            - configMapRef:
+                name: {{ include "backend.fullname" . }}-config
+            - secretRef:
+                name: {{ include "backend.fullname" . }}-secret

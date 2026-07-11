@@ -1,0 +1,1 @@
+{{- /* Backend ingress disabled - routes handled by frontend ingress */ -}}

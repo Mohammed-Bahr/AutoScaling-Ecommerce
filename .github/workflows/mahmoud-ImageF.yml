@@ -1,0 +1,67 @@
+name: "CD - Frontend Docker Image"
+concurrency: 
+  group: update-image-tag
+  cancel-in-progress: false
+permissions: 
+  contents: write
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - mahmoud
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/mahmoud-ImageF.yml' #will comment this after the test is over
+
+jobs:
+  build-and-push-frontend:
+    name: Build & Push Frontend Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4.2.0
+        with:
+          username: mohammedbahr
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build frontend image
+        working-directory: ./frontend
+        run: |
+          docker build \
+            -t mohammedbahr/depi-project-frontend:${{ github.run_id }} \
+            -t mohammedbahr/depi-project-frontend:latest .
+
+      - name: Push frontend image
+        run: |
+          docker push mohammedbahr/depi-project-frontend:${{ github.run_id }}
+          docker push mohammedbahr/depi-project-frontend:latest
+      - name: update values helm
+        working-directory: ./k8s/master-ecommerce/
+        run: |
+          # Use yq to safely update ONLY the frontend tag in the YAML structure
+          yq -i '.frontend.image.tag = "${{ github.run_id }}"' values.yaml
+          
+          # Verify the change in the logs
+          #echo "Verified values.yaml update:"
+          #cat values.yaml
+      - name: commit and push infra changes
+        working-directory: ./k8s/master-ecommerce/
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Stage the updated values file
+          git add values.yaml
+          
+          # Commit the change
+          git commit -m "infra: update frontend image tag to ${{ github.run_id }}"
+          
+          #pull the latest
+          git pull origin mahmoud --rebase
+
+          # Push back to the mahmoud branch
+          git push origin mahmoud
+           

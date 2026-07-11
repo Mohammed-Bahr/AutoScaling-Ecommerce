@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "my-frontend.fullname" . }}-deployment
+  labels:
+    app: {{ include "my-frontend.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit | default 2 }}
+  selector:
+    matchLabels:
+      app: {{ include "my-frontend.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "my-frontend.name" . }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP

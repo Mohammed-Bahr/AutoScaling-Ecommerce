@@ -1,0 +1,13 @@
+global:
+  domain: "argocd.local.192.168.1.201.nip.io"
+
+server:
+  # 1. ADD THIS: Tell Argo CD to accept unencrypted HTTP traffic from NGINX
+  extraArgs:
+    - --insecure
+
+  ingress:
+    enabled: true
+    ingressClassName: "nginx"
+    # 2. REMOVE the backend-protocol and ssl-passthrough annotations!
+    # Because we are running insecure, NGINX will now correctly use HTTP.

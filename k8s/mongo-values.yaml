@@ -1,0 +1,19 @@
+architecture: standalone # Change to "replicaset" if you want multiple pods
+
+auth:
+  rootPassword: "secret-root-password"
+  usernames: ["mahmoud"]
+  passwords: ["1234"]
+  databases: ["depi-project"]
+
+persistence:
+  enabled: true
+  storageClass: "local-path"
+  size: 1Gi
+
+# THIS IS THE MAGIC FOR GRAFANA:
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring

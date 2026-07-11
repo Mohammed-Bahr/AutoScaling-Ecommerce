@@ -1,0 +1,22 @@
+replicaCount: 2
+
+image:
+  repository: mohammedbahr/depi-project-frontend
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+
+nameOverride: "frontend"
+fullnameOverride: "frontend"
+
+# --- Add this Ingress block at the bottom ---
+ingress:
+  className: "nginx"
+  host: "ecommerce.local.192.168.1.201.nip.io"
+  path: "/(.*)"
+  pathType: "ImplementationSpecific"
