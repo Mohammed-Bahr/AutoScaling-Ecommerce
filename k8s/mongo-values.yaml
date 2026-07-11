@@ -1,4 +1,4 @@
-architecture: standalone # Change to "replicaset" if you want multiple pods
+architecture: standalone  #replicaset if you want multiple pods
 
 auth:
   rootPassword: "secret-root-password"
