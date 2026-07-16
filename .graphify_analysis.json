@@ -1,0 +1,476 @@
+{
+  "communities": {
+    "0": [
+      "be_categoryctrl",
+      "be_productctrl",
+      "fe_admindash",
+      "fe_adminroute",
+      "fe_apislice",
+      "fe_authslice",
+      "fe_cart",
+      "fe_cartslice",
+      "fe_cartutils",
+      "fe_categoryapi",
+      "fe_categorylist",
+      "fe_favorites",
+      "fe_favslice",
+      "fe_hearticon",
+      "fe_home",
+      "fe_localstorage",
+      "fe_login",
+      "fe_navigation",
+      "fe_order",
+      "fe_orderapi",
+      "fe_orderlist",
+      "fe_paypal",
+      "fe_placeorder",
+      "fe_privateroute",
+      "fe_productapi",
+      "fe_productdetail",
+      "fe_productlist",
+      "fe_productupdate",
+      "fe_profile",
+      "fe_redux_store",
+      "fe_register",
+      "fe_router",
+      "fe_shipping",
+      "fe_shop",
+      "fe_shopslice",
+      "fe_userapi",
+      "fe_userlist",
+      "fe_userorder"
+    ],
+    "1": [
+      "backend_controllers_categorycontroller_js",
+      "backend_controllers_productcontroller_js",
+      "backend_middlewares_asynchandler_js",
+      "backend_middlewares_authmiddleware_js",
+      "backend_middlewares_checkid_js",
+      "backend_routes_categoryroutes_js",
+      "backend_routes_productroutes_js",
+      "controllers_categorycontroller_createcategory",
+      "controllers_categorycontroller_listcategory",
+      "controllers_categorycontroller_readcategory",
+      "controllers_categorycontroller_removecategory",
+      "controllers_categorycontroller_updatecategory",
+      "controllers_productcontroller_addproduct",
+      "controllers_productcontroller_addproductreview",
+      "controllers_productcontroller_fetchallproducts",
+      "controllers_productcontroller_fetchnewproducts",
+      "controllers_productcontroller_fetchproductbyid",
+      "controllers_productcontroller_fetchproducts",
+      "controllers_productcontroller_fetchtopproducts",
+      "controllers_productcontroller_filterproducts",
+      "controllers_productcontroller_removeproduct",
+      "controllers_productcontroller_updateproductdetails",
+      "middlewares_asynchandler_asynchandler",
+      "middlewares_authmiddleware_authenticate",
+      "middlewares_authmiddleware_authorizeadmin",
+      "middlewares_checkid_checkid",
+      "routes_categoryroutes_router",
+      "routes_productroutes_router"
+    ],
+    "2": [
+      "be_authmw",
+      "be_categorymodel",
+      "be_db",
+      "be_orderctrl",
+      "be_ordermodel",
+      "be_productmodel",
+      "be_seed",
+      "be_server",
+      "be_token",
+      "be_userctrl",
+      "be_usermodel",
+      "db_mongo",
+      "docs_commands",
+      "fe_app",
+      "infra_argocd",
+      "infra_compose",
+      "infra_helm_backend",
+      "infra_helm_frontend",
+      "infra_helm_master",
+      "infra_ingress",
+      "infra_mongo_bitnami",
+      "infra_monitoring"
+    ],
+    "3": [
+      "admin_admindashboard_admindashboard",
+      "admin_adminmenu_adminmenu",
+      "admin_adminroute_adminroute",
+      "admin_allproducts_allproducts",
+      "admin_orderlist_orderlist",
+      "admin_productlist_productlist",
+      "admin_productupdate_adminproductupdate",
+      "components_privateroute_privateroute",
+      "frontend_src_components_privateroute_jsx",
+      "frontend_src_main_jsx",
+      "frontend_src_pages_admin_admindashboard_jsx",
+      "frontend_src_pages_admin_adminmenu_jsx",
+      "frontend_src_pages_admin_adminroute_jsx",
+      "frontend_src_pages_admin_allproducts_jsx",
+      "frontend_src_pages_admin_orderlist_jsx",
+      "frontend_src_pages_admin_productlist_jsx",
+      "frontend_src_pages_admin_productupdate_jsx",
+      "src_main_router"
+    ],
+    "4": [
+      "backend_controllers_ordercontroller_js",
+      "backend_models_ordermodel_js",
+      "backend_routes_orderroutes_js",
+      "controllers_ordercontroller_calcprices",
+      "controllers_ordercontroller_calcualtetotalsalesbydate",
+      "controllers_ordercontroller_calculatetotalsales",
+      "controllers_ordercontroller_counttotalorders",
+      "controllers_ordercontroller_createorder",
+      "controllers_ordercontroller_findorderbyid",
+      "controllers_ordercontroller_getallorders",
+      "controllers_ordercontroller_getuserorders",
+      "controllers_ordercontroller_markorderasdelivered",
+      "controllers_ordercontroller_markorderaspaid",
+      "models_ordermodel_order",
+      "models_ordermodel_orderschema",
+      "routes_orderroutes_router"
+    ],
+    "5": [
+      "backend_models_categorymodel_js",
+      "backend_models_productmodel_js",
+      "backend_models_usermodel_js",
+      "backend_seed_categories",
+      "backend_seed_dirname",
+      "backend_seed_filename",
+      "backend_seed_js",
+      "backend_seed_products_file",
+      "backend_seed_seed",
+      "backend_seed_users",
+      "models_categorymodel_categoryschema",
+      "models_productmodel_product",
+      "models_productmodel_productschema",
+      "models_productmodel_reviewschema",
+      "models_usermodel_user",
+      "models_usermodel_userschema"
+    ],
+    "6": [
+      "favorites_favoriteslice_favoriteslice",
+      "favorites_favoriteslice_selectfavoriteproduct",
+      "frontend_src_pages_products_favorites_jsx",
+      "frontend_src_pages_products_hearticon_jsx",
+      "frontend_src_pages_products_product_jsx",
+      "frontend_src_pages_products_smallproduct_jsx",
+      "frontend_src_redux_features_favorites_favoriteslice_js",
+      "frontend_src_utils_localstorage_js",
+      "products_favorites_favorites",
+      "products_hearticon_hearticon",
+      "products_product_product",
+      "products_smallproduct_smallproduct",
+      "utils_localstorage_addfavoritetolocalstorage",
+      "utils_localstorage_getfavoritesfromlocalstorage",
+      "utils_localstorage_removefavoritefromlocalstorage"
+    ],
+    "7": [
+      "admin_userlist_userlist",
+      "components_loader_loader",
+      "components_message_message",
+      "frontend_src_components_loader_jsx",
+      "frontend_src_components_message_jsx",
+      "frontend_src_pages_admin_userlist_jsx",
+      "frontend_src_pages_orders_order_jsx",
+      "frontend_src_pages_orders_placeorder_jsx",
+      "frontend_src_pages_products_products_jsx",
+      "frontend_src_pages_user_userorder_jsx",
+      "orders_order_order",
+      "orders_placeorder_placeorder",
+      "products_products_product",
+      "user_userorder_userorder"
+    ],
+    "8": [
+      "backend_controllers_usercontroller_js",
+      "backend_routes_userroutes_js",
+      "backend_utils_createtoken_js",
+      "controllers_usercontroller_createuser",
+      "controllers_usercontroller_deleteuserbyid",
+      "controllers_usercontroller_getallusers",
+      "controllers_usercontroller_getcurrentuserprofile",
+      "controllers_usercontroller_getuserbyid",
+      "controllers_usercontroller_loginuser",
+      "controllers_usercontroller_logoutcurrentuser",
+      "controllers_usercontroller_updatecurrentuserprofile",
+      "controllers_usercontroller_updateuserbyid",
+      "routes_userroutes_router",
+      "utils_createtoken_generatetoken"
+    ],
+    "9": [
+      "cart_cartslice_cartslice",
+      "components_progresssteps_progresssteps",
+      "frontend_src_components_progresssteps_jsx",
+      "frontend_src_pages_cart_jsx",
+      "frontend_src_pages_orders_shipping_jsx",
+      "frontend_src_pages_products_productcard_jsx",
+      "frontend_src_redux_features_cart_cartslice_js",
+      "frontend_src_utils_cartutils_js",
+      "orders_shipping_shipping",
+      "pages_cart_cart",
+      "products_productcard_productcard",
+      "utils_cartutils_adddecimals",
+      "utils_cartutils_updatecart"
+    ],
+    "10": [
+      "api_apislice_apislice",
+      "api_apislice_basequery",
+      "api_categoryapislice_categoryapislice",
+      "api_orderapislice_orderapislice",
+      "api_usersapislice_userapislice",
+      "frontend_src_redux_api_apislice_js",
+      "frontend_src_redux_api_categoryapislice_js",
+      "frontend_src_redux_api_orderapislice_js",
+      "frontend_src_redux_api_usersapislice_js",
+      "frontend_src_redux_constants_js",
+      "frontend_src_redux_store_js",
+      "redux_store_store"
+    ],
+    "11": [
+      "backend_config_db_js",
+      "backend_index_app",
+      "backend_index_dirname",
+      "backend_index_filename",
+      "backend_index_js",
+      "backend_routes_uploadroutes_js",
+      "config_db_connectdb",
+      "routes_uploadroutes_filefilter",
+      "routes_uploadroutes_router",
+      "routes_uploadroutes_storage",
+      "routes_uploadroutes_upload",
+      "routes_uploadroutes_uploadsingleimage"
+    ],
+    "12": [
+      "auth_authslice_authslice",
+      "auth_authslice_initialstate",
+      "auth_login_login",
+      "auth_register_register",
+      "frontend_src_pages_auth_login_jsx",
+      "frontend_src_pages_auth_register_jsx",
+      "frontend_src_pages_user_profile_jsx",
+      "frontend_src_redux_features_auth_authslice_js",
+      "user_profile_profile"
+    ],
+    "13": [
+      "api_productapislice_productapislice",
+      "components_header_header",
+      "frontend_src_components_header_jsx",
+      "frontend_src_pages_home_jsx",
+      "frontend_src_pages_products_productcarousel_jsx",
+      "frontend_src_redux_api_productapislice_js",
+      "pages_home_home",
+      "products_productcarousel_productcarousel"
+    ],
+    "14": [
+      "auth_navigation_navigation",
+      "frontend_src_app_jsx",
+      "frontend_src_pages_auth_navigation_jsx",
+      "frontend_src_pages_products_favoritescount_jsx",
+      "products_favoritescount_favoritescount",
+      "src_app_app"
+    ],
+    "15": [
+      "admin_categorylist_categorylist",
+      "components_categoryform_categoryform",
+      "components_modal_modal",
+      "frontend_src_components_categoryform_jsx",
+      "frontend_src_components_modal_jsx",
+      "frontend_src_pages_admin_categorylist_jsx"
+    ],
+    "16": [
+      "frontend_src_pages_products_productdetails_jsx",
+      "frontend_src_pages_products_producttabs_jsx",
+      "frontend_src_pages_products_ratings_jsx",
+      "products_productdetails_productdetails",
+      "products_producttabs_producttabs",
+      "products_ratings_ratings"
+    ],
+    "17": [
+      "frontend_src_pages_shop_jsx",
+      "frontend_src_redux_features_shop_shopslice_js",
+      "pages_shop_shop",
+      "shop_shopslice_initialstate",
+      "shop_shopslice_shopslice"
+    ],
+    "18": [
+      "frontend_postcss_config_js"
+    ],
+    "19": [
+      "frontend_tailwind_config_js"
+    ],
+    "20": [
+      "frontend_vite_config_js"
+    ]
+  },
+  "cohesion": {
+    "0": 0.11,
+    "1": 0.13,
+    "2": 0.16,
+    "3": 0.14,
+    "4": 0.21,
+    "5": 0.12,
+    "6": 0.2,
+    "7": 0.19,
+    "8": 0.24,
+    "9": 0.18,
+    "10": 0.27,
+    "11": 0.17,
+    "12": 0.22,
+    "13": 0.32,
+    "14": 0.33,
+    "15": 0.33,
+    "16": 0.4,
+    "17": 0.4,
+    "18": 1.0,
+    "19": 1.0,
+    "20": 1.0
+  },
+  "gods": [
+    {
+      "id": "fe_router",
+      "label": "React Router Routes",
+      "degree": 22
+    },
+    {
+      "id": "fe_authslice",
+      "label": "authSlice (user session)",
+      "degree": 10
+    },
+    {
+      "id": "be_server",
+      "label": "Backend Express Server",
+      "degree": 10
+    },
+    {
+      "id": "fe_userapi",
+      "label": "userApiSlice",
+      "degree": 8
+    },
+    {
+      "id": "fe_orderapi",
+      "label": "orderApiSlice",
+      "degree": 8
+    },
+    {
+      "id": "fe_redux_store",
+      "label": "Redux Store",
+      "degree": 7
+    },
+    {
+      "id": "fe_productapi",
+      "label": "productApiSlice",
+      "degree": 7
+    },
+    {
+      "id": "api_apislice_apislice",
+      "label": "apiSlice",
+      "degree": 6
+    },
+    {
+      "id": "fe_cartslice",
+      "label": "cartSlice",
+      "degree": 6
+    },
+    {
+      "id": "fe_categoryapi",
+      "label": "categoryApiSlice",
+      "degree": 6
+    }
+  ],
+  "surprises": [
+    {
+      "source": "NGINX Ingress",
+      "target": "Backend Express Server",
+      "source_files": [
+        "k8s/master-ecommerce/charts/my-frontend/templates/ingress.yaml",
+        "backend/index.js"
+      ],
+      "confidence": "INFERRED",
+      "relation": "references",
+      "why": "inferred connection - not explicitly stated in source; crosses file types (code \u2194 doc); connects across different repos/directories; peripheral node `NGINX Ingress` unexpectedly reaches hub `Backend Express Server`"
+    },
+    {
+      "source": "Prometheus + Grafana",
+      "target": "Backend Express Server",
+      "source_files": [
+        "k8s/monitoring-values.yaml",
+        "backend/index.js"
+      ],
+      "confidence": "INFERRED",
+      "relation": "references",
+      "why": "inferred connection - not explicitly stated in source; crosses file types (code \u2194 doc); connects across different repos/directories; peripheral node `Prometheus + Grafana` unexpectedly reaches hub `Backend Express Server`"
+    },
+    {
+      "source": "docker-compose Stack",
+      "target": "Frontend App (React SPA)",
+      "source_files": [
+        "docker-compose.yaml",
+        "frontend/src/main.jsx"
+      ],
+      "confidence": "INFERRED",
+      "relation": "references",
+      "why": "inferred connection - not explicitly stated in source; crosses file types (code \u2194 doc); connects across different repos/directories"
+    },
+    {
+      "source": "Frontend Helm Chart",
+      "target": "Frontend App (React SPA)",
+      "source_files": [
+        "k8s/master-ecommerce/charts/my-frontend/Chart.yaml",
+        "frontend/src/main.jsx"
+      ],
+      "confidence": "INFERRED",
+      "relation": "references",
+      "why": "inferred connection - not explicitly stated in source; crosses file types (code \u2194 doc); connects across different repos/directories"
+    },
+    {
+      "source": "docker-compose Stack",
+      "target": "Backend Express Server",
+      "source_files": [
+        "docker-compose.yaml",
+        "backend/index.js"
+      ],
+      "confidence": "INFERRED",
+      "relation": "references",
+      "why": "inferred connection - not explicitly stated in source; crosses file types (code \u2194 doc); connects across different repos/directories"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `React Router Routes` connect `Community 0` to `Community 2`?",
+      "why": "High betweenness centrality (0.018) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `Backend Express Server` connect `Community 2` to `Community 0`?",
+      "why": "High betweenness centrality (0.010) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `Frontend App (React SPA)` connect `Community 2` to `Community 0`?",
+      "why": "High betweenness centrality (0.009) - this node is a cross-community bridge."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 4 inferred relationships involving `Backend Express Server` (e.g. with `docker-compose Stack` and `Backend Helm Chart`) actually correct?",
+      "why": "`Backend Express Server` has 4 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 2 inferred relationships involving `orderApiSlice` (e.g. with `orderController` and `PayPal SDK (@paypal/react-paypal-js)`) actually correct?",
+      "why": "`orderApiSlice` has 2 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `router`, `store`, `baseQuery` to the rest of the system?",
+      "why": "38 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 0` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.11 - nodes in this community are weakly interconnected."
+    }
+  ]
+}
