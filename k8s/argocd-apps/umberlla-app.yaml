@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: my-full-stack
+  name: ecom
   # This MUST be 'argocd' because this Application object lives inside ArgoCD's brain
   namespace: argocd
 spec:

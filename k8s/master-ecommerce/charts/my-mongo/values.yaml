@@ -30,7 +30,7 @@ persistence:
   enabled: true
   accessMode: ReadWriteOnce
   size: 5Gi
-  storageClass: local-path
+  storageClass: standard
 
 auth:
   rootUser: "Bahr"
