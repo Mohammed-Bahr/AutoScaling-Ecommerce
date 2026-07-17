@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-init
+  namespace: ecom
+data:
+  # Runs once on first boot of the (empty) data directory.
+  # Creates the application user and grants it rights on the app DB.
+  init-app-user.sh: |
+    #!/bin/bash
+    set -e
+    echo ">>> Creating application user '${MONGO_USERNAME}' on database '${MONGO_INITDB_DATABASE}'"
+    mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin <<EOF
+    use ${MONGO_INITDB_DATABASE};
+    db.createUser({
+      user: "${MONGO_USERNAME}",
+      pwd: "${MONGO_PASSWORD}",
+      roles: [{ role: "readWrite", db: "${MONGO_INITDB_DATABASE}" }]
+    });
+    EOF
+    echo ">>> Done."

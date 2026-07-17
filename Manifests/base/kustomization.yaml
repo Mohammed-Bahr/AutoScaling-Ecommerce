@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# base/ — plain manifests, ready to be applied directly OR overlaid
+namespace: ecom
+
+resources:
+  - 00-namespace.yaml
+  - 10-mongo-secret.yaml
+  - 11-mongo-pvc.yaml
+  - 12-mongo-statefulset.yaml
+  - 13-mongo-init-configmap.yaml
+  - 20-backend-secret.yaml
+  - 21-backend-deployment.yaml
+  - 30-frontend-configmap.yaml
+  - 31-frontend-deployment.yaml
+  - 40-ingress.yaml
+
+commonLabels:
+  app.kubernetes.io/part-of: mern-stack

@@ -3,32 +3,32 @@ kind: Application
 metadata:
   name: my-full-stack
   # This MUST be 'argocd' because this Application object lives inside ArgoCD's brain
-  namespace: argocd 
+  namespace: argocd
 spec:
   project: default
   source:
     # 1. CHANGE THIS: Put the URL of your actual GitHub repository here
     repoURL: 'https://github.com/Mohammed-Bahr/AutoScaling-Ecommerce.git'
     # 2. Branch name (HEAD usually means 'main' or 'master')
-    targetRevision: mahmoud
-    
-    # 3. CHANGE THIS (if needed): This must be the exact name of the folder 
+    targetRevision: main
+
+    # 3. CHANGE THIS (if needed): This must be the exact name of the folder
     # inside your Git repo that contains your master umbrella Chart.yaml
-    path: k8s/master-ecommerce 
-    
+    path: k8s/master-ecommerce
+
   destination:
     # This means "Deploy to the same cluster that ArgoCD is running on"
     server: 'https://kubernetes.default.svc'
-    
+
     # 4. CHANGE THIS: The namespace where you actually want your front/back/DB pods to run
-    namespace: ecom 
-    
+    namespace: ecom
+
   syncPolicy:
     automated:
       # If you delete a file in Git, ArgoCD will delete it in the cluster
-      prune: true 
+      prune: true
       # If someone manually edits the cluster, ArgoCD will overwrite it back to match Git
-      selfHeal: true 
+      selfHeal: true
     syncOptions:
       # Automatically creates the 'ecom' namespace if it doesn't exist yet
       - CreateNamespace=true

@@ -1,0 +1,31 @@
+# Headless service for StatefulSet stable network identity
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "my-mongo.fullname" . }}-headless
+  labels:
+    {{- include "my-mongo.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  selector:
+    {{- include "my-mongo.labels" . | nindent 4 }}
+  ports:
+    - name: mongo
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}
+---
+# Client-facing ClusterIP service for backend connections
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "my-mongo.fullname" . }}
+  labels:
+    {{- include "my-mongo.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "my-mongo.labels" . | nindent 4 }}
+  ports:
+    - name: mongo
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}

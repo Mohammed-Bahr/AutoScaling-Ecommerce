@@ -18,7 +18,7 @@ ingress:
   pathType: "Prefix"
 
 config:
-  mongoUri: "mongodb://mahmoud:1234@my-prod-db-mongodb.ecom.svc.cluster.local:27017/depi-project"
+  mongoUri: "mongodb://Bahr:1234@my-mongo:27017/depi-project?authSource=admin"
   port: "5000"
   nodeEnv: "production"
 

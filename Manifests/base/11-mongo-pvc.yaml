@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-data
+  namespace: ecom
+spec:
+  # On kind, there is no default StorageClass. We explicitly bind to
+  # local-path (installed by the bootstrap script) or any dynamic provisioner.
+  # If you prefer manual PVs, use overlays/dev and patch storageClassName to "".
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: local-path

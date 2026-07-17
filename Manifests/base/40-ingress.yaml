@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mern
+  namespace: mern
+  labels:
+    app.kubernetes.io/part-of: mern-stack
+  annotations:
+    # ingress-nginx specific
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  # No host = matches any host. On kind you can hit http://localhost directly.
+  rules:
+    - http:
+        paths:
+          # /api/<anything> -> backend:5000/<anything>
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 5000
+          # Everything else -> frontend (nginx serves the SPA)
+          - path: /(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80

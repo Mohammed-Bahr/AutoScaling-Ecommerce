@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mern-stack
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: mern-stack
+spec:
+  project: default
+
+  source:
+    # ⚠️ Replace with your git repo URL once you push this folder.
+    repoURL: https://github.com/<YOUR_USER>/<YOUR_REPO>.git
+    targetRevision: HEAD
+    # Path to the overlay you want ArgoCD to apply
+    path: Manifests/overlays/dev
+    # Kustomize is the default, but pinning is clearer
+    plugin: {}
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ecom
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 5m
+
+  revisionHistoryLimit: 10

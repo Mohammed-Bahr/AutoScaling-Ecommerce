@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-url
+  namespace: mern
+data:
+  # Baked into the build via REACT_APP_/VITE_ vars at docker build time, OR
+  # consumed at runtime if your React app reads window.__CONFIG__.
+  # Vite uses VITE_* prefix; the value must be the *browser* URL of the API.
+  # In-cluster the API is exposed via the ingress at /api.
+  VITE_API_BASE_URL: "/api"
